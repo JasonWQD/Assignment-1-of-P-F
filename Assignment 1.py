@@ -31,13 +31,85 @@ def fData(lNames):
     
     return dfBike, dfGas1, dfGas2, dfUmbrella, dfData
 
+###########################################################
+### fPlot1()
+def fPlot1(dfGas1):
+    
+    plt.figure(dpi = 300)
+    plt.plot(dfGas1, color = 'red')
+    plt.show()
+    
+    return 
 
+###########################################################
+### fPlot2()
+def fPlot2(dfGas1):
+    
+    plt.figure(dpi = 300)
+    plt.plot(dfGas1, color = 'red')
+    plt.axhline(np.mean(dfGas1), color = 'blue')
+    plt.show()
+    
+    return 
 
+###########################################################
+### fRA_Plot3()
+def fRA_Plot3(dfGas1):
+    
+    vRA = np.divide(np.cumsum(dfGas1.values), np.array(range(1, len(dfGas1) + 1)))
+    plt.figure(dpi = 300)
+    plt.plot(dfGas1, color = 'red')
+    plt.plot(np.array(range(1, len(dfGas1) + 1)), vRA, color = 'blue')
+    plt.show()
+    
+    return 
 
+###########################################################
+### fRA_Plot3()
+def fRA_Plot4(dfGas1):
+    
+    vRA = np.divide(np.cumsum(dfGas1.values), np.array(range(1, len(dfGas1) + 1)))
+    
+    fig = plt.figure(dpi = 300)
+    ax1 = fig.add_subplot(211)
+    ax1.plot(dfGas1, color = 'red')
+    ax1.plot(np.array(range(2, len(dfGas1) + 1)), vRA[: -1], color = 'blue')
+    
+    ax2 = fig.add_subplot(212)
+    ax2.vlines(np.array(range(1, len(dfGas1) + 1)), 0, np.insert(dfGas1['Gasoline'].values[1: ] - vRA[: -1], 0, 0))
+    ax2.axhline(0)
+    ax2.scatter(np.array(range(2, len(dfGas1) + 1)), dfGas1['Gasoline'].values[1: ] - vRA[: -1])
+    plt.tight_layout(pad = 1.08)
+    plt.show()
+    
+    vYt = dfGas1['Gasoline'].values[1: ]
+    vYt_hat = vRA[: -1]
+    vUt = vYt - vYt_hat
+    dfTable1 = pd.DataFrame(np.stack([vYt, vYt_hat, vUt]).T, columns = ['Y_t', 'Y_t_hat', 'U_t'])
+    dfTable1 = pd.concat([dfTable1, pd.DataFrame(np.mean(dfTable1, axis = 0)).T], axis = 0)
+    
+    return dfTable1
 
+###########################################################
+### fTable1()
+def fTable1(dfGas1):
+    
+    vYt = dfGas1['Gasoline'].values[1: ]
+    vYt_hat = vRA[: -1]
+    vUt = vYt - vYt_hat
+    
+    return 
 
+###########################################################
+### fData()
+def fPredict(dfGas1):
+    
+    plt.figure(dpi = 300)
+    plt.plot(dfGas1, color = 'red')
+    plt.axhline(np.mean(dfGas1), color = 'blue')
+    plt.show()
 
-
+    return
 
 
 
