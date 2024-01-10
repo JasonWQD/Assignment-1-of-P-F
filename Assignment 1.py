@@ -91,6 +91,15 @@ def fRA_Plot4(dfGas1):
     return dfTable1
 
 ###########################################################
+### fEvaluation()
+def fEvaluation(vYt, vUt):
+    
+    dME = np.mean(vUt)
+    dMAE = round(np.mean(np.abs(vUt)), 2)
+    
+    
+    return 
+###########################################################
 ### fTable1()
 def fTable1(dfGas1):
     
