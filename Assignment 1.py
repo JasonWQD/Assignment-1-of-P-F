@@ -82,20 +82,57 @@ def fRA_Plot4(dfGas1):
     plt.tight_layout(pad = 1.08)
     plt.show()
     
+    return vRA
+
+###########################################################
+### fTable1_2()
+def fTable1_2(dfGas1):
+    
+    vRA = np.divide(np.cumsum(dfGas1.values), np.array(range(1, len(dfGas1) + 1)))
     vYt = dfGas1['Gasoline'].values[1: ]
     vYt_hat = vRA[: -1]
     vUt = vYt - vYt_hat
-    dfTable1 = pd.DataFrame(np.stack([vYt, vYt_hat, vUt]).T, columns = ['Y_t', 'Y_t_hat', 'U_t'])
-    dfTable1 = pd.concat([dfTable1, pd.DataFrame(np.mean(dfTable1, axis = 0)).T], axis = 0)
+    dfTable = pd.DataFrame(np.stack([vYt, vYt_hat, vUt]).T, columns = ['Y_t', 'Y_t_hat', 'U_t'])
+    dfTable1 = pd.concat([dfTable, pd.DataFrame(np.mean(dfTable, axis = 0)).T], axis = 0)
     
-    return dfTable1
+    dfTable2 = dfTable.copy()
+    dfTable2['|U_t|'] = np.abs(dfTable['U_t'])
+    dfTable2['%|U_t|'] = 100 * dfTable2['|U_t|'] / dfTable2['Y_t']
+    dfTable2['U_t2'] = dfTable2['U_t'] ** 2
+    dfTable2 = np.round(dfTable2, 2)
+    dME, dMAE, dMAPE, dMSE = fEvaluation(vYt, vUt)
+    
+    return dfTable1, dfTable2
 
 ###########################################################
 ### fEvaluation()
 def fEvaluation(vYt, vUt):
     
-    dME = np.mean(vUt)
+    dME = round(np.mean(vUt), 2)
     dMAE = round(np.mean(np.abs(vUt)), 2)
+    dMAPE = round(100 * np.mean(np.divide(np.abs(vUt), np.abs(vYt))), 2)
+    dMSE = round(np.mean(vUt ** 2), 2)
+    
+    return dME, dMAE, dMAPE, dMSE
+
+###########################################################
+### fRW()
+def fRW(vYt):
+    
+    vYt_hat = vYt[: -1]
+    
+    return vYt_hat
+
+
+###########################################################
+### fRW()
+def fRA(vYt):
+    
+    vYt_hat = np.divide(np.cumsum(vYt), np.array(range(1, len(vYt) + 1)))
+    
+    return vYt_hat
+
+def fTable3():
     
     
     return 
