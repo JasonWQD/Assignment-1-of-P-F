@@ -106,11 +106,12 @@ def fTable1_2(dfGas1):
 
 ###########################################################
 ### fEvaluation()
-def fEvaluation(vYt, vUt):
+def fEvaluation(vYt, vYt_hat):
     
+    vUt = vYt[1: ] - vYt_hat
     dME = round(np.mean(vUt), 2)
     dMAE = round(np.mean(np.abs(vUt)), 2)
-    dMAPE = round(100 * np.mean(np.divide(np.abs(vUt), np.abs(vYt))), 2)
+    dMAPE = round(100 * np.mean(np.divide(np.abs(vUt), np.abs(vYt[1: ]))), 2)
     dMSE = round(np.mean(vUt ** 2), 2)
     
     return dME, dMAE, dMAPE, dMSE
@@ -128,12 +129,19 @@ def fRW(vYt):
 ### fRW()
 def fRA(vYt):
     
-    vYt_hat = np.divide(np.cumsum(vYt), np.array(range(1, len(vYt) + 1)))
+    vYt_hat = np.divide(np.cumsum(vYt), np.array(range(1, len(vYt) + 1)))[1: ]
     
     return vYt_hat
 
-def fTable3():
+###########################################################
+### fTable3()
+def fTable3_4(dfGas1):
     
+    vYt = dfGas1['Gasoline'].values
+    vRA = fRA(vYt)
+    vRW = fRW(vYt)
+    dME, dMAE, dMAPE, dMSE = fEvaluation(vYt, vRA)
+    dME, dMAE, dMAPE, dMSE = fEvaluation(vYt, vRW)
     
     return 
 ###########################################################
