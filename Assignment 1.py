@@ -94,9 +94,6 @@ def fRA_Plot4(dfGas1):
 ### fTable1()
 def fTable1(dfGas1):
     
-    vYt = dfGas1['Gasoline'].values[1: ]
-    vYt_hat = vRA[: -1]
-    vUt = vYt - vYt_hat
     
     return 
 
