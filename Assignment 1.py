@@ -129,7 +129,7 @@ def fRW(vYt):
 ### fRW()
 def fRA(vYt):
     
-    vYt_hat = np.divide(np.cumsum(vYt), np.array(range(1, len(vYt) + 1)))[1: ]
+    vYt_hat = np.divide(np.cumsum(vYt), np.array(range(1, len(vYt) + 1)))[: -1]
     
     return vYt_hat
 
@@ -140,10 +140,11 @@ def fTable3_4(dfGas1):
     vYt = dfGas1['Gasoline'].values
     vRA = fRA(vYt)
     vRW = fRW(vYt)
-    dME, dMAE, dMAPE, dMSE = fEvaluation(vYt, vRA)
-    dME, dMAE, dMAPE, dMSE = fEvaluation(vYt, vRW)
+    dfTable3 = pd.DataFrame(np.vstack([fEvaluation(vYt, vRA), fEvaluation(vYt, vRW)]), columns = ['ME', 'MAE', 'MAPE', 'MSE'], index = ['Running Avg', 'Random Walk'])
+    dfTable4 = pd.DataFrame(np.vstack([fEvaluation(vYt[5: ], vRA[5: ]), fEvaluation(vYt[5: ], vRW[5: ])]), columns = ['ME', 'MAE', 'MAPE', 'MSE'], index = ['Running Avg', 'Random Walk'])
     
-    return 
+    return dfTable3, dfTable4
+
 ###########################################################
 ### fTable1()
 def fTable1(dfGas1):
