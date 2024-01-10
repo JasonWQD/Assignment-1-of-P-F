@@ -1,8 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jan 10 09:46:11 2024
+Date:
+    Created on Wed Jan 10 09:46:11 2024
 
-@author: jason
+Purpose:
+    Assignment 1 of Predication & Forecasting
+    
+Author:
+    Thao Le
+    Yuanyuan Su
+    Jason Wang
+
 """
 
