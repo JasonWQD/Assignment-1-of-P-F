@@ -18,6 +18,7 @@ Author:
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+from statsmodels.tsa.ar_model import AutoReg
 
 ###########################################################
 ### fData()
@@ -93,8 +94,8 @@ def fPlot2(dfGas1):
     return 
 
 ###########################################################
-### fRA_Plot3()
-def fRA_Plot3(dfGas1):
+### fPlot3()
+def fPlot3(dfGas1):
     
     vRA = np.divide(np.cumsum(dfGas1.values), np.array(range(1, len(dfGas1) + 1)))
     plt.figure(dpi = 300)
@@ -105,8 +106,8 @@ def fRA_Plot3(dfGas1):
     return 
 
 ###########################################################
-### fRA_Plot3()
-def fRA_Plot4(dfGas1):
+### fPlot4()
+def fPlot4(dfGas1):
     
     vRA = np.divide(np.cumsum(dfGas1.values), np.array(range(1, len(dfGas1) + 1)))
     
@@ -218,7 +219,7 @@ def fPlot5_6_7_8(dfGas1):
     return 
 
 ###########################################################
-### fPlot9()
+### fPlot9_10()
 def fPlot9_10(dfGas1):
     
     vYt = dfGas1['Gasoline'].values
@@ -239,15 +240,65 @@ def fPlot9_10(dfGas1):
         plt.show()
     
     return 
+
+###########################################################
+### fPlot12()
+def fPlot12(dfGas2):
+    
+    plt.figure(dpi = 300)
+    plt.plot(dfGas2, color = 'red')
+    plt.show()
+    
+    return 
+
+###########################################################
+### fPlot12()
+def fPlot13(dfGas2):
+    
+    vYt = dfGas2['Gasoline'].values
+    vRA = fRA(vYt)
+    vRW = fRW(vYt)
+    vES = fES(vYt, dAlpha = 0.2)
+    vAR = np.zeros(len(vYt) - 7)
+    for i in range(len(vYt) - 7):
+        AR_model = AutoReg(vYt[: 7], lags = 1).fit()
+        vAR = AR_model.predict(7, len(vYt))
+    
+    fig = plt.figure(dpi = 300)
+    ax1 = fig.add_subplot(321)
+    ax1.plot(np.array(range(1, len(vYt) + 1)), vYt, label = 'Gasoline Sales')
+    ax1.axhline(np.mean(vYt[: 12]), color = 'red', label = 'Expert Forecast')
+    ax1.legend(prop={'size': 6})
+    ax2 = fig.add_subplot(322)
+    ax2.plot(np.array(range(1, len(vYt) + 1)), vYt, label = 'Gasoline Sales')
+    ax2.plot(np.array(range(2, len(vYt) + 1)), vRA, label = 'Running Avg Forecast')
+    ax2.legend(prop={'size': 6})
+    ax3 = fig.add_subplot(323)
+    ax3.plot(np.array(range(1, len(vYt) + 1)), vYt, label = 'Gasoline Sales')
+    ax3.plot(np.array(range(2, len(vYt) + 1)), vRW, label = 'Random Walk Forecast')
+    ax3.legend(prop={'size': 6})
+    ax4 = fig.add_subplot(324)
+    ax4.plot(np.array(range(1, len(vYt) + 1)), vYt, label = 'Gasoline Sales')
+    ax4.plot(np.array(range(7, len(vYt) + 1)), vAR, label = 'AR(1) Forecast')
+    ax4.legend(prop={'size': 6})
+    ax5 = fig.add_subplot(325)
+    ax5.plot(np.array(range(1, len(vYt) + 1)), vYt, label = 'Gasoline Sales')
+    ax5.plot(np.array(range(2, len(vYt) + 1)), vES, label = 'Exp Smo Forecast, alpha = 0.2')
+    ax5.legend(prop={'size': 6})
+    plt.tight_layout(pad = 1.08)
+    plt.show()
+    
+    return 
+
 ###########################################################
 ### fTable1_2()
 def fTable1_2(dfGas1):
     
     vRA = np.divide(np.cumsum(dfGas1.values), np.array(range(1, len(dfGas1) + 1)))
-    vYt = dfGas1['Gasoline'].values[1: ]
+    vYt = dfGas1['Gasoline']
     vYt_hat = vRA[: -1]
-    vUt = vYt - vYt_hat
-    dfTable = pd.DataFrame(np.stack([vYt, vYt_hat, vUt]).T, columns = ['Y_t', 'Y_t_hat', 'U_t'])
+    vUt = vYt[1: ] - vYt_hat
+    dfTable = pd.DataFrame(np.stack([vYt[1: ], vYt_hat, vUt]).T, columns = ['Y_t', 'Y_t_hat', 'U_t'])
     dfTable1 = pd.concat([dfTable, pd.DataFrame(np.mean(dfTable, axis = 0)).T], axis = 0)
     
     dfTable2 = dfTable.copy()
@@ -255,12 +306,12 @@ def fTable1_2(dfGas1):
     dfTable2['%|U_t|'] = 100 * dfTable2['|U_t|'] / dfTable2['Y_t']
     dfTable2['U_t2'] = dfTable2['U_t'] ** 2
     dfTable2 = np.round(dfTable2, 2)
-    dME, dMAE, dMAPE, dMSE = fEvaluation(vYt, vUt)
+    dME, dMAE, dMAPE, dMSE = fEvaluation(vYt, vYt_hat)
     
     return dfTable1, dfTable2
 
 ###########################################################
-### fTable3()
+### fTable3_4()
 def fTable3_4(dfGas1):
     
     vYt = dfGas1['Gasoline'].values
@@ -272,7 +323,7 @@ def fTable3_4(dfGas1):
     return dfTable3, dfTable4
 
 ###########################################################
-### fTable1()
+### fTable5()
 def fTable5(dfGas1):
     
     vYt = dfGas1['Gasoline'].values
@@ -285,17 +336,36 @@ def fTable5(dfGas1):
     return dfTable5
 
 ###########################################################
-### fData()
-def fPredict(dfGas1):
+### fTable7()
+def fTable7(dfGas2):
     
-    plt.figure(dpi = 300)
-    plt.plot(dfGas1, color = 'red')
-    plt.axhline(np.mean(dfGas1), color = 'blue')
-    plt.show()
+    vYt = dfGas2['Gasoline'].values
+    vRA = fRA(vYt)
+    vRW = fRW(vYt)
+    vES1 = fES(vYt, dAlpha = 0.2)
+    vES2 = fES(vYt, dAlpha = 0.8)
+    dfTable7 = pd.DataFrame(np.vstack([fEvaluation(vYt[5: ], vRA[5: ]), fEvaluation(vYt[5: ], vRW[5: ]), fEvaluation(vYt[5: ], vES1[5: ]), fEvaluation(vYt[5: ], vES2[5: ])]), columns = ['ME', 'MAE', 'MAPE', 'MSE'], index = ['Running Avg', 'Random Walk', 'ExpSmo (0.2)', 'ExpSmo (0.8)'])
+    
+    return dfTable7
 
-    return
-
-
+###########################################################
+### fGasPredict()
+def fGasPredict(dfGas1, dfGas2):
+    
+    fPlot1(dfGas1)
+    fPlot2(dfGas1)
+    fPlot3(dfGas1)
+    fPlot4(dfGas1)
+    fPlot5_6_7_8(dfGas1)
+    fPlot9_10(dfGas1)
+    fPlot12(dfGas2)
+    fPlot13(dfGas2)
+    dfTable1, dfTable2 = fTable1_2(dfGas1)
+    dfTable3, dfTable4 = fTable3_4(dfGas1)
+    dfTable5 = fTable5(dfGas1)
+    dfTable7 = fTable7(dfGas2)
+    
+    return dfTable1, dfTable2, dfTable3, dfTable4, dfTable5, dfTable7
 
 ###########################################################
 ### main()
@@ -306,7 +376,7 @@ def main():
     dfBike, dfGas1, dfGas2, dfUmbrella, dfData = fData(lNames)
     
     # Question (a)
-    
+    dfTable1, dfTable2, dfTable3, dfTable4, dfTable5, dfTable7 = fGasPredict(dfGas1, dfGas2)
     
     
     
