@@ -32,6 +32,46 @@ def fData(lNames):
     return dfBike, dfGas1, dfGas2, dfUmbrella, dfData
 
 ###########################################################
+### fEvaluation()
+def fEvaluation(vYt, vYt_hat):
+    
+    vUt = vYt[1: ] - vYt_hat
+    dME = round(np.mean(vUt), 2)
+    dMAE = round(np.mean(np.abs(vUt)), 2)
+    dMAPE = round(100 * np.mean(np.divide(np.abs(vUt), np.abs(vYt[1: ]))), 2)
+    dMSE = round(np.mean(vUt ** 2), 2)
+    
+    return dME, dMAE, dMAPE, dMSE
+
+###########################################################
+### fRW()
+def fRW(vYt):
+    
+    vYt_hat = vYt[: -1]
+    
+    return vYt_hat
+
+
+###########################################################
+### fRW()
+def fRA(vYt):
+    
+    vYt_hat = np.divide(np.cumsum(vYt), np.array(range(1, len(vYt) + 1)))[: -1]
+    
+    return vYt_hat
+
+###########################################################
+### fES()
+def fES(vYt, dAlpha):
+    
+    vYt_hat = np.zeros(len(vYt))
+    vYt_hat[0] = vYt[0]
+    for i in range(1, len(vYt)):
+        vYt_hat[i] = dAlpha * vYt[i - 1] + (1 - dAlpha) * vYt_hat[i - 1]
+    
+    return vYt_hat[1: ]
+
+###########################################################
 ### fPlot1()
 def fPlot1(dfGas1):
     
@@ -179,8 +219,24 @@ def fPlot5_6_7_8(dfGas1):
 
 ###########################################################
 ### fPlot9()
-def fPlot9():
+def fPlot9_10(dfGas1):
     
+    vYt = dfGas1['Gasoline'].values
+    lAlpha = [0.2, 0.8]
+    for dAlpha in lAlpha:
+        vES = fES(vYt, dAlpha)
+        
+        fig = plt.figure(dpi = 300)
+        ax1 = fig.add_subplot(211)
+        ax1.plot(dfGas1, color = 'red')
+        ax1.plot(np.array(range(2, len(dfGas1) + 1)), vES, color = 'blue')
+        
+        ax2 = fig.add_subplot(212)
+        ax2.vlines(np.array(range(1, len(dfGas1) + 1)), 0, np.insert(dfGas1['Gasoline'].values[1: ] - vES, 0, 0))
+        ax2.axhline(0)
+        ax2.scatter(np.array(range(2, len(dfGas1) + 1)), dfGas1['Gasoline'].values[1: ] - vES)
+        plt.tight_layout(pad = 1.08)
+        plt.show()
     
     return 
 ###########################################################
@@ -204,35 +260,6 @@ def fTable1_2(dfGas1):
     return dfTable1, dfTable2
 
 ###########################################################
-### fEvaluation()
-def fEvaluation(vYt, vYt_hat):
-    
-    vUt = vYt[1: ] - vYt_hat
-    dME = round(np.mean(vUt), 2)
-    dMAE = round(np.mean(np.abs(vUt)), 2)
-    dMAPE = round(100 * np.mean(np.divide(np.abs(vUt), np.abs(vYt[1: ]))), 2)
-    dMSE = round(np.mean(vUt ** 2), 2)
-    
-    return dME, dMAE, dMAPE, dMSE
-
-###########################################################
-### fRW()
-def fRW(vYt):
-    
-    vYt_hat = vYt[: -1]
-    
-    return vYt_hat
-
-
-###########################################################
-### fRW()
-def fRA(vYt):
-    
-    vYt_hat = np.divide(np.cumsum(vYt), np.array(range(1, len(vYt) + 1)))[: -1]
-    
-    return vYt_hat
-
-###########################################################
 ### fTable3()
 def fTable3_4(dfGas1):
     
@@ -246,10 +273,16 @@ def fTable3_4(dfGas1):
 
 ###########################################################
 ### fTable1()
-def fTable1(dfGas1):
+def fTable5(dfGas1):
     
+    vYt = dfGas1['Gasoline'].values
+    vRA = fRA(vYt)
+    vRW = fRW(vYt)
+    vES1 = fES(vYt, dAlpha = 0.2)
+    vES2 = fES(vYt, dAlpha = 0.8)
+    dfTable5 = pd.DataFrame(np.vstack([fEvaluation(vYt[5: ], vRA[5: ]), fEvaluation(vYt[5: ], vRW[5: ]), fEvaluation(vYt[5: ], vES1[5: ]), fEvaluation(vYt[5: ], vES2[5: ])]), columns = ['ME', 'MAE', 'MAPE', 'MSE'], index = ['Running Avg', 'Random Walk', 'ExpSmo (0.2)', 'ExpSmo (0.8)'])
     
-    return 
+    return dfTable5
 
 ###########################################################
 ### fData()
