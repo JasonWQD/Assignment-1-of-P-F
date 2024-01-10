@@ -85,6 +85,105 @@ def fRA_Plot4(dfGas1):
     return vRA
 
 ###########################################################
+### fRA_Plot5()
+def fPlot5_6_7_8(dfGas1):
+    
+    vRAweights = np.array([1 / 50] * 50)
+    vMAweights = np.zeros(50)
+    vRWweights = np.zeros(50)
+    vESweights = np.zeros(50)
+    vMAweights[: 10] = 1 / 10
+    vRWweights[0] = 1
+    dAlpha = 0.2
+    vESweights[-1] = (1 - dAlpha) ** 49
+    vESweights[: -1] = dAlpha * np.power((1 - dAlpha), np.array(range(50 - 1)))
+    
+    fig = plt.figure(dpi = 300)
+    ax1 = fig.add_subplot(221)
+    ax1.bar(np.array(range(50)), vRAweights, label = 'Running Average')
+    ax1.set_ylim(0, 0.03)
+    ax1.legend()
+    ax2 = fig.add_subplot(222)
+    ax2.bar(np.array(range(50)), vMAweights, label = 'Moving Average')
+    ax2.legend()
+    ax3 = fig.add_subplot(223)
+    ax3.bar(np.array(range(50)), vRWweights, label = 'Random Walk')
+    ax3.legend()
+    ax4 = fig.add_subplot(224)
+    ax4.bar(np.array(range(50)), vESweights, label = 'Exp Smo')
+    ax4.legend()
+    plt.tight_layout(pad = 1.08)
+    plt.show()
+    
+    fig = plt.figure(dpi = 300)
+    ax1 = fig.add_subplot(221)
+    dAlpha = 0.05
+    vESweights[-1] = (1 - dAlpha) ** 49
+    vESweights[: -1] = dAlpha * np.power((1 - dAlpha), np.array(range(50 - 1)))
+    ax1.bar(np.array(range(50)), vESweights, label = 'alpha = 0.05')
+    ax1.legend()
+    dAlpha = 0.1
+    vESweights[-1] = (1 - dAlpha) ** 49
+    vESweights[: -1] = dAlpha * np.power((1 - dAlpha), np.array(range(50 - 1)))
+    ax2 = fig.add_subplot(222)
+    ax2.bar(np.array(range(50)), vESweights, label = 'alpha = 0.10')
+    ax2.legend()
+    dAlpha = 0.2
+    vESweights[-1] = (1 - dAlpha) ** 49
+    vESweights[: -1] = dAlpha * np.power((1 - dAlpha), np.array(range(50 - 1)))
+    ax3 = fig.add_subplot(223)
+    ax3.bar(np.array(range(50)), vESweights, label = 'alpha = 0.20')
+    ax3.legend()
+    dAlpha = 0.5
+    vESweights[-1] = (1 - dAlpha) ** 49
+    vESweights[: -1] = dAlpha * np.power((1 - dAlpha), np.array(range(50 - 1)))
+    ax4 = fig.add_subplot(224)
+    ax4.bar(np.array(range(50)), vESweights, label = 'alpha = 0.50')
+    ax4.legend()
+    plt.tight_layout(pad = 1.08)
+    plt.show()
+    
+    fig = plt.figure(dpi = 300)
+    ax1 = fig.add_subplot(221)
+    dAlpha = 0.05
+    vESweights = np.power((1 - dAlpha), np.array(range(50)))
+    dMI = round(np.log(0.1) / np.log(1 - dAlpha), 2)
+    ax1.bar(np.array(range(50)), vESweights, label = 'alpha = 0.05')
+    ax1.axhline(0.1, color = 'red', label = '0.1, mem idx = {}'.format(dMI))
+    ax1.legend()
+    dAlpha = 0.1
+    vESweights = np.power((1 - dAlpha), np.array(range(50)))
+    dMI = round(np.log(0.1) / np.log(1 - dAlpha), 2)
+    ax2 = fig.add_subplot(222)
+    ax2.bar(np.array(range(50)), vESweights, label = 'alpha = 0.10')
+    ax2.axhline(0.1, color = 'red', label = '0.1, mem idx = {}'.format(dMI))
+    ax2.legend()
+    dAlpha = 0.2
+    vESweights = np.power((1 - dAlpha), np.array(range(50)))
+    dMI = round(np.log(0.1) / np.log(1 - dAlpha), 2)
+    ax3 = fig.add_subplot(223)
+    ax3.bar(np.array(range(50)), vESweights, label = 'alpha = 0.20')
+    ax3.axhline(0.1, color = 'red', label = '0.1, mem idx = {}'.format(dMI))
+    ax3.legend()
+    dAlpha = 0.5
+    vESweights = np.power((1 - dAlpha), np.array(range(50)))
+    dMI = round(np.log(0.1) / np.log(1 - dAlpha), 2)
+    ax4 = fig.add_subplot(224)
+    ax4.bar(np.array(range(50)), vESweights, label = 'alpha = 0.50')
+    ax4.axhline(0.1, color = 'red', label = '0.1, mem idx = {}'.format(dMI))
+    ax4.legend()
+    plt.tight_layout(pad = 1.08)
+    plt.show()
+    
+    return 
+
+###########################################################
+### fPlot9()
+def fPlot9():
+    
+    
+    return 
+###########################################################
 ### fTable1_2()
 def fTable1_2(dfGas1):
     
