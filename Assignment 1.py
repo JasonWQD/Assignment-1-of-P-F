@@ -73,6 +73,47 @@ def fES(vYt, dAlpha):
     return vYt_hat[1: ]
 
 ###########################################################
+### fRT()
+def fRT(vYt):
+    
+    vYt_hat = np.zeros(len(vYt) - 2)
+    for i in range(len(vYt_hat)):
+        mX = np.vstack([np.ones(i + 2), np.array(range(1, i + 3))]).T
+        vY = vYt[: i + 2]
+        vBeta = np.linalg.inv(mX.T @ mX) @ mX.T @ vY
+        vYt_hat[i] = np.array([1, i + 3]) @ vBeta
+    
+    return vYt_hat
+
+###########################################################
+### fRW_Drift()
+def fRW_Drift(vYt):
+    
+    vYt_hat = np.zeros(len(vYt) - 2)
+    vDiff = np.diff(vYt)
+    for i in range(len(vYt_hat)):
+        dC = np.mean(vDiff[: i + 1])
+        print(dC)
+        vYt_hat[i] = vYt[i + 1] + dC
+    
+    return vYt_hat
+
+###########################################################
+### fHolt_Winters()
+def fHolt_Winters(vYt, dAlpha, dBeta):
+    
+    vYt_hat = np.zeros(len(vYt) - 2)
+    dL = vYt[0]
+    dG = vYt[1] - vYt[0]
+    for i in range(len(vYt_hat)):
+        dL_new = dAlpha * vYt[i + 1] + (1 - dAlpha) * (dL + dG)
+        dG = dBeta * (dL_new - dL) + (1 - dBeta) * dG
+        vYt_hat[i] = dL_new + dG
+        dL = dL_new.copy()
+    
+    return vYt_hat
+
+###########################################################
 ### fPlot1()
 def fPlot1(dfGas1):
     
