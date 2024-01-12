@@ -88,7 +88,7 @@ def fPlot2(dfGas1):
     
     plt.figure(dpi = 300)
     plt.plot(dfGas1, color = 'red')
-    plt.axhline(np.mean(dfGas1), color = 'blue')
+    plt.axhline(np.mean(np.mean(dfGas1['Gasoline'])), color = 'blue')
     plt.show()
     
     return 
