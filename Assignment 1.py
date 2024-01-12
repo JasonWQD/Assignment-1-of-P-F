@@ -114,6 +114,47 @@ def fHolt_Winters(vYt, dAlpha, dBeta):
     return vYt_hat
 
 ###########################################################
+### fSeasonal_RW_Drift()
+def fSeasonal_RW_Drift(vYt, sSeason):
+    
+    iN = len(vYt)
+    if sSeason == 'seasonal':
+        iS = 4
+    elif sSeason == 'monthly':
+        iS = 12
+    vYt_hat = np.zeros(iN - iS - 1)
+    for i in range(len(vYt_hat)):
+        dSum = 0
+        for j in range(i + 1):
+            dSum = dSum + vYt[i + iS + 1 - j] - vYt[i + 1 - j]
+        dC = 1 / (i + iS + 1) * dSum
+        vYt_hat[i] = vYt[i + 1] + dC
+        
+    return vYt_hat
+
+###########################################################
+### fSeasonal_RW_Drift()
+def fRunning_SR(vYt, vSeason, sSeason):
+    
+    iN = len(vYt)
+    if sSeason == 'seasonal':
+        iS = 4
+    elif sSeason == 'monthly':
+        iS = 12
+    vYt_hat = np.zeros(iN - iS - 1)
+    mSeason = np.diag(np.ones(iS))
+    mSea = np.diag(np.ones(iS))
+    for i in range(len(vYt_hat)):
+        mX = np.hstack([np.ones(i + iS + 1).reshape(-1, 1), np.array(range(1, i + iS + 2)).reshape(-1, 1)])
+        mSea = np.vstack((mSea, mSeason[vSeason[i + iS] - 1, :]))
+        mX = np.hstack((mX, mSea))
+        vY = vYt[: i + iS + 1]
+        vBeta = np.linalg.inv(mX.T @ mX) @ mX.T @ vY
+        vYt_hat[i] = np.hstack((np.array([1, i + iS + 2]), mSeason[vSeason[i + iS + 1] - 1])) @ vBeta
+        print(i)
+    return vYt_hat
+
+###########################################################
 ### fPlot1()
 def fPlot1(dfGas1):
     
