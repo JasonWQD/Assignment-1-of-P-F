@@ -156,6 +156,56 @@ def fRunning_SR(vYt, vSeason, sSeason):
     return vYt_hat
 
 ###########################################################
+### fSeasonal_HW_Multi()
+def fSeasonal_HW_Multi(vYt, sSeason, dAlpha, dBeta, dGamma):
+    
+    iN = len(vYt)
+    if sSeason == 'seasonal':
+        iS = 4
+    elif sSeason == 'monthly':
+        iS = 12
+    vYt_hat = np.zeros(iN - iS - 1)
+    dLt = np.mean(vYt[: iS])
+    dGt = (np.mean(vYt[iS: 2 * iS]) - dLt) / iS
+    vHt = np.zeros(iN)
+    vHt[: iS] = vYt[: iS] / dLt
+    
+    for i in range(len(vYt_hat)):
+        dLt_new = dAlpha * (vYt[i + iS] / vHt[i]) + (1 - dAlpha) * (dLt + dGt)
+        dGt = dBeta * (dLt_new - dLt) + (1 - dBeta) * dGt
+        vHt[iS + i] = dGamma * vYt[i + iS] / dLt_new + (1 - dGamma) * vHt[i]
+        vYt_hat[i] = vHt[i + 1] * (dLt_new + dGt)
+        dLt = dLt_new
+    vYt_hat = np.round(vYt_hat, 2)
+        
+    return vYt_hat
+
+###########################################################
+### fSeasonal_HW_Multi()
+def fSeasonal_HW_Add(vYt, sSeason, dAlpha, dBeta, dGamma):
+    
+    iN = len(vYt)
+    if sSeason == 'seasonal':
+        iS = 4
+    elif sSeason == 'monthly':
+        iS = 12
+    vYt_hat = np.zeros(iN - iS - 1)
+    dLt = np.mean(vYt[: iS])
+    dGt = (np.mean(vYt[iS: 2 * iS]) - dLt) / iS
+    vHt = np.zeros(iN)
+    vHt[: iS] = vYt[: iS] - dLt
+    
+    for i in range(len(vYt_hat)):
+        dLt_new = dAlpha * (vYt[i + iS] / vHt[i]) + (1 - dAlpha) * (dLt + dGt)
+        dGt = dBeta * (dLt_new - dLt) + (1 - dBeta) * dGt
+        vHt[iS + i] = dGamma * vYt[i + iS] / dLt_new + (1 - dGamma) * vHt[i]
+        vYt_hat[i] = vHt[i + 1] + dLt_new + dGt
+        dLt = dLt_new
+    vYt_hat = np.round(vYt_hat, 2)
+        
+    return vYt_hat
+
+###########################################################
 ### fPlot1()
 def fPlot1(dfGas1):
     
