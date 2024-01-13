@@ -70,7 +70,7 @@ def fES(vYt, dAlpha):
     for i in range(1, len(vYt)):
         vYt_hat[i] = dAlpha * vYt[i - 1] + (1 - dAlpha) * vYt_hat[i - 1]
     
-    return vYt_hat[1: ]
+    return np.round(vYt_hat[1: ], 2)
 
 ###########################################################
 ### fRT()
@@ -83,7 +83,7 @@ def fRT(vYt):
         vBeta = np.linalg.inv(mX.T @ mX) @ mX.T @ vY
         vYt_hat[i] = np.array([1, i + 3]) @ vBeta
     
-    return vYt_hat
+    return np.round(vYt_hat, 2)
 
 ###########################################################
 ### fRW_Drift()
@@ -93,10 +93,9 @@ def fRW_Drift(vYt):
     vDiff = np.diff(vYt)
     for i in range(len(vYt_hat)):
         dC = np.mean(vDiff[: i + 1])
-        print(dC)
         vYt_hat[i] = vYt[i + 1] + dC
     
-    return vYt_hat
+    return np.round(vYt_hat, 2)
 
 ###########################################################
 ### fHolt_Winters()
@@ -111,7 +110,7 @@ def fHolt_Winters(vYt, dAlpha, dBeta):
         vYt_hat[i] = dL_new + dG
         dL = dL_new.copy()
     
-    return vYt_hat
+    return np.round(vYt_hat, 2)
 
 ###########################################################
 ### fSeasonal_RW_Drift()
@@ -501,6 +500,50 @@ def fGasPredict(dfGas1, dfGas2):
     return dfTable1, dfTable2, dfTable3, dfTable4, dfTable5, dfTable7
 
 ###########################################################
+### fPredict()
+def fPredict(vYt, bTune = 1, dAlpha_ES = 0, dAlpha_HW = 0, dBeta_HW = 0):
+    
+    vRW = fRW(vYt)
+    vRA = fRA(vYt)
+    vRT = fRT(vYt)
+    vRW_Drift = fRW_Drift(vYt)
+    
+    if bTune == 1:
+        vMSE = np.zeros(10)
+        vAlpha = np.linspace(0.1, 1, 10)
+        vBeta = np.linspace(0.1, 1, 10)
+        for i in range(len(vAlpha)):
+            vES = fES(vYt, vAlpha[i])
+            dME, dMAE, dMAPE, dMSE = fEvaluation(vYt[-11: ], vES[-10: ])
+            vMSE[i] = dMSE
+        dAlpha_ES = vAlpha[np.argmin(vMSE)]
+        
+        mMSE = np.zeros((len(vAlpha), len(vBeta)))
+        for i in range(len(vAlpha)):
+            for j in range(len(vBeta)):
+                vHW = fHolt_Winters(vYt, vAlpha[i], vBeta[j])
+                dME, dMAE, dMAPE, dMSE = fEvaluation(vYt[-11: ], vHW[-10: ])
+                mMSE[i, j] = dMSE
+        dAlpha_HW = vAlpha[np.argmin(mMSE) // 10]
+        dBeta_HW = vBeta[np.argmin(mMSE) % 10]
+        
+    vES = fES(vYt, dAlpha_ES)
+    vHW = fHolt_Winters(vYt, dAlpha_HW, dBeta_HW)
+    
+    mPredictions = np.vstack((vRW[-10: ], vRA[-10: ], vRT[-10: ], vRW_Drift[-10: ], vES[-10: ], vHW[-10: ]))
+    mEvaluations = np.zeros((len(mPredictions), 4))
+    for i in range(len(mPredictions)):
+        mEvaluations[i] = fEvaluation(vYt[-11: ], mPredictions[i])
+    dfEvaluation = pd.DataFrame(mEvaluations, columns = ['ME', 'MAE', 'MAPE', 'MSE'], index = ['RW', 'RA', 'RT', 'RW_Drift', 'ES', 'HW'])
+    
+    if bTune == 1:
+        return dfEvaluation, dAlpha_ES, dAlpha_HW, dBeta_HW
+    else:
+        return dfEvaluation
+
+
+
+###########################################################
 ### main()
 def main():
     
@@ -511,9 +554,12 @@ def main():
     # Question (a)
     dfTable1, dfTable2, dfTable3, dfTable4, dfTable5, dfTable7 = fGasPredict(dfGas1, dfGas2)
     
+    # Question (b)
+    vYt = dfData['Var3'].values[: 40]
+    dfEvaluation, dAlpha_ES, dAlpha_HW, dBeta_HW = fPredict(vYt)
     
-    
-    
+    vYt = dfData['Var3'].values
+    dfEvaluation = fPredict(vYt, bTune = 0, dAlpha_ES = dAlpha_ES, dAlpha_HW = dAlpha_HW, dBeta_HW = dBeta_HW)
     
     
     
