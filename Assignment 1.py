@@ -541,7 +541,69 @@ def fPredict(vYt, bTune = 1, dAlpha_ES = 0, dAlpha_HW = 0, dBeta_HW = 0):
     else:
         return dfEvaluation
 
+###########################################################
+### fTunning_Para()
+def fTunning_Para(vYt, sSeason, bMethod, bEva):
+    
+    iN = len(vYt)
+    if sSeason == 'seasonal':
+        iS = 4
+    elif sSeason == 'monthly':
+        iS = 12
+    vAlpha = np.linspace(0.1, 1, 10)
+    vBeta = np.linspace(0.1, 1, 10)
+    vGamma = np.linspace(0.1, 1, 10)
+    mEva = np.zeros(((len(vAlpha), len(vBeta), len(vGamma))))
+    for i in range(len(vAlpha)):
+        for j in range(len(vBeta)):
+            for k in range(len(vGamma)):
+                if bMethod == 'Seasonal_HW_Multi':
+                    vSHW = fSeasonal_HW_Multi(vYt, sSeason, vAlpha[i], vBeta[j], vGamma[k])
+                    if bEva == 'ME':
+                        mEva[i, j, k] = fEvaluation(vYt[-13: ], vSHW[-12: ])[0]
+                    elif bEva == 'MAE':
+                        mEva[i, j, k] = fEvaluation(vYt[-13: ], vSHW[-12: ])[1]
+                    elif bEva == 'MAPE':
+                        mEva[i, j, k] = fEvaluation(vYt[-13: ], vSHW[-12: ])[2]
+                    elif bEva == 'MSE':
+                        mEva[i, j, k] = fEvaluation(vYt[-13: ], vSHW[-12: ])[3]
+                if bMethod == 'Seasonal_HW_Add':
+                    vSHW = fSeasonal_HW_Add(vYt, sSeason, vAlpha[i], vBeta[j], vGamma[k])
+                    if bEva == 'ME':
+                        mEva[i, j, k] = fEvaluation(vYt[-13: ], vSHW[-12: ])[0]
+                    elif bEva == 'MAE':
+                        mEva[i, j, k] = fEvaluation(vYt[-13: ], vSHW[-12: ])[1]
+                    elif bEva == 'MAPE':
+                        mEva[i, j, k] = fEvaluation(vYt[-13: ], vSHW[-12: ])[2]
+                    elif bEva == 'MSE':
+                        mEva[i, j, k] = fEvaluation(vYt[-13: ], vSHW[-12: ])[3]
+    iIndex = np.argmin(mEva)
+    dAlpha_HW = vAlpha[iIndex // 100]
+    dBeta_HW = vBeta[iIndex // 10 % 10]
+    dGamma_HW = vGamma[iIndex % 10]
+    if bMethod == 'Seasonal_HW_Multi':
+        vYt_hat = fSeasonal_HW_Multi(vYt, sSeason, dAlpha_HW, dBeta_HW, dGamma_HW)
+    elif bMethod == 'Seasonal_HW_Add':
+        vYt_hat = fSeasonal_HW_Add(vYt, sSeason, dAlpha_HW, dBeta_HW, dGamma_HW)
+    
+    return vYt_hat
 
+###########################################################
+### fSeasonal_Predcit()
+def fSeasonal_Predcit(vYt, vSeason, sSeason):
+    
+    
+    vRW_Sea = fSeasonal_RW_Drift(vYt, sSeason = 'seasonal')
+    vRSR = fRunning_SR(vYt, vSeason, sSeason)
+    vSHW_Multi = fTunning_Para(vYt, sSeason, bMethod = 'Seasonal_HW_Multi', bEva = 'MSE')
+    vSHW_Add = fTunning_Para(vYt, sSeason, bMethod = 'Seasonal_HW_Add', bEva = 'MSE')
+    mPredictions = np.vstack((vRW_Sea[-12: ], vRSR[-12: ], vSHW_Multi[-12: ], vSHW_Add[-12: ]))
+    mEvaluations = np.zeros((len(mPredictions), 4))
+    for i in range(len(mPredictions)):
+        mEvaluations[i] = fEvaluation(vYt[-13: ], mPredictions[i])
+    dfEvaluation = pd.DataFrame(mEvaluations, columns = ['ME', 'MAE', 'MAPE', 'MSE'], index = ['RW_Sea', 'RSR', 'SHW_Multi', 'SHW_Add'])
+    
+    return dfEvaluation
 
 ###########################################################
 ### main()
@@ -561,8 +623,12 @@ def main():
     vYt = dfData['Var3'].values
     dfEvaluation = fPredict(vYt, bTune = 0, dAlpha_ES = dAlpha_ES, dAlpha_HW = dAlpha_HW, dBeta_HW = dBeta_HW)
     
-    
-    
+    # Question (c)
+    vYt = dfUmbrella['Umbrella Sales'].values
+    vSeason = dfUmbrella['SeasIdx'].values
+    sSeason = 'seasonal'
+    dfEva_Sea = fSeasonal_Predcit(vYt, vSeason, sSeason)
+
     
     
     
