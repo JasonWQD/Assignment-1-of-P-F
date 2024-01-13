@@ -133,7 +133,7 @@ def fSeasonal_RW_Drift(vYt, sSeason):
     return vYt_hat
 
 ###########################################################
-### fSeasonal_RW_Drift()
+### fRunning_SR()
 def fRunning_SR(vYt, vSeason, sSeason):
     
     iN = len(vYt)
@@ -142,16 +142,17 @@ def fRunning_SR(vYt, vSeason, sSeason):
     elif sSeason == 'monthly':
         iS = 12
     vYt_hat = np.zeros(iN - iS - 1)
-    mSeason = np.diag(np.ones(iS))
-    mSea = np.diag(np.ones(iS))
+    mSeason = np.vstack((np.diag(np.ones(iS - 1)), -np.ones(iS - 1)))    
+    mX_part1 = np.vstack([np.ones(iN), np.array(range(1, iN + 1))]).T
+    mX_part2 = np.vstack((np.tile(mSeason, (iN // iS, 1)), mSeason[: iN % iS]))
+    mX = np.hstack((mX_part1, mX_part2))
+    
     for i in range(len(vYt_hat)):
-        mX = np.hstack([np.ones(i + iS + 1).reshape(-1, 1), np.array(range(1, i + iS + 2)).reshape(-1, 1)])
-        mSea = np.vstack((mSea, mSeason[vSeason[i + iS] - 1, :]))
-        mX = np.hstack((mX, mSea))
+        mXt = mX[: i + iS + 1]
         vY = vYt[: i + iS + 1]
-        vBeta = np.linalg.inv(mX.T @ mX) @ mX.T @ vY
-        vYt_hat[i] = np.hstack((np.array([1, i + iS + 2]), mSeason[vSeason[i + iS + 1] - 1])) @ vBeta
-        print(i)
+        vBeta = np.linalg.inv(mXt.T @ mXt) @ mXt.T @ vY
+        vYt_hat[i] = mX[i + iS + 1] @ vBeta
+        
     return vYt_hat
 
 ###########################################################
