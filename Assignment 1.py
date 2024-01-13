@@ -29,8 +29,11 @@ def fData(lNames):
     dfGas2 = pd.read_excel(lNames[2], index_col = 0)
     dfUmbrella = pd.read_excel(lNames[3])
     dfData = pd.read_excel(lNames[4])
+    dfSun = pd.read_csv('Sunspot.csv', sep = ';', header = None).iloc[-84:, :][[3]]
+    dfSun.columns = ['Sunspot']
+    dfSun.index = np.array(range(len(dfSun)))
     
-    return dfBike, dfGas1, dfGas2, dfUmbrella, dfData
+    return dfBike, dfGas1, dfGas2, dfUmbrella, dfData, dfSun
 
 ###########################################################
 ### fEvaluation()
@@ -133,7 +136,7 @@ def fSeasonal_RW_Drift(vYt, sSeason):
 
 ###########################################################
 ### fRunning_SR()
-def fRunning_SR(vYt, vSeason, sSeason):
+def fRunning_SR(vYt, sSeason):
     
     iN = len(vYt)
     if sSeason == 'seasonal':
@@ -590,11 +593,11 @@ def fTunning_Para(vYt, sSeason, bMethod, bEva):
 
 ###########################################################
 ### fSeasonal_Predcit()
-def fSeasonal_Predcit(vYt, vSeason, sSeason):
+def fSeasonal_Predcit(vYt, sSeason):
     
     
     vRW_Sea = fSeasonal_RW_Drift(vYt, sSeason = 'seasonal')
-    vRSR = fRunning_SR(vYt, vSeason, sSeason)
+    vRSR = fRunning_SR(vYt, sSeason)
     vSHW_Multi = fTunning_Para(vYt, sSeason, bMethod = 'Seasonal_HW_Multi', bEva = 'MSE')
     vSHW_Add = fTunning_Para(vYt, sSeason, bMethod = 'Seasonal_HW_Add', bEva = 'MSE')
     mPredictions = np.vstack((vRW_Sea[-12: ], vRSR[-12: ], vSHW_Multi[-12: ], vSHW_Add[-12: ]))
@@ -610,8 +613,8 @@ def fSeasonal_Predcit(vYt, vSeason, sSeason):
 def main():
     
     # Import datasets
-    lNames = ['BicycleSales.xlsx', 'GasolineSales1.xlsx', 'GasolineSales2.xlsx', 'Umbrella.xlsx', 'DataAssignment1.xlsx']
-    dfBike, dfGas1, dfGas2, dfUmbrella, dfData = fData(lNames)
+    lNames = ['BicycleSales.xlsx', 'GasolineSales1.xlsx', 'GasolineSales2.xlsx', 'Umbrella.xlsx', 'DataAssignment1.xlsx', 'Store Sales.csv']
+    dfBike, dfGas1, dfGas2, dfUmbrella, dfData, dfSun = fData(lNames)
     
     # Question (a)
     dfTable1, dfTable2, dfTable3, dfTable4, dfTable5, dfTable7 = fGasPredict(dfGas1, dfGas2)
@@ -625,11 +628,12 @@ def main():
     
     # Question (c)
     vYt = dfUmbrella['Umbrella Sales'].values
-    vSeason = dfUmbrella['SeasIdx'].values
     sSeason = 'seasonal'
-    dfEva_Sea = fSeasonal_Predcit(vYt, vSeason, sSeason)
+    dfEva_Sea = fSeasonal_Predcit(vYt, sSeason)
 
-    
+    # Question (d)
+    vYt = dfSun['Sunspot'].values
+    fPlot1(pd.read_csv('Sunspot.csv', sep = ';', header = None)[[3]])
     
     
 ###########################################################
