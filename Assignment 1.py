@@ -548,11 +548,6 @@ def fPredict(vYt, bTune = 1, dAlpha_ES = 0, dAlpha_HW = 0, dBeta_HW = 0):
 ### fTunning_Para()
 def fTunning_Para(vYt, sSeason, bMethod, bEva):
     
-    iN = len(vYt)
-    if sSeason == 'seasonal':
-        iS = 4
-    elif sSeason == 'monthly':
-        iS = 12
     vAlpha = np.linspace(0.1, 1, 10)
     vBeta = np.linspace(0.1, 1, 10)
     vGamma = np.linspace(0.1, 1, 10)
@@ -629,8 +624,7 @@ def main():
     
     # Question (c)
     vYt = dfUmbrella['Umbrella Sales'].values
-    sSeason = 'seasonal'
-    dfEva_Sea = fSeasonal_Predcit(vYt, sSeason, 'MAE')
+    dfEva_Sea = fSeasonal_Predcit(vYt, 'seasonal', 'MAE')
 
     # Question (d)
     vYt = dfSun['Sunspot'].values
