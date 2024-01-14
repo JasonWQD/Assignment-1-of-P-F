@@ -593,13 +593,14 @@ def fTunning_Para(vYt, sSeason, bMethod, bEva):
 
 ###########################################################
 ### fSeasonal_Predcit()
-def fSeasonal_Predcit(vYt, sSeason):
+def fSeasonal_Predcit(vYt, sSeason, bEva):
     
     
-    vRW_Sea = fSeasonal_RW_Drift(vYt, sSeason = 'seasonal')
+    vRW_Sea = fSeasonal_RW_Drift(vYt, sSeason)
     vRSR = fRunning_SR(vYt, sSeason)
-    vSHW_Multi = fTunning_Para(vYt, sSeason, bMethod = 'Seasonal_HW_Multi', bEva = 'MSE')
-    vSHW_Add = fTunning_Para(vYt, sSeason, bMethod = 'Seasonal_HW_Add', bEva = 'MSE')
+    
+    vSHW_Multi = fTunning_Para(vYt, sSeason, 'Seasonal_HW_Multi', bEva)
+    vSHW_Add = fTunning_Para(vYt, sSeason, 'Seasonal_HW_Add', bEva)
     mPredictions = np.vstack((vRW_Sea[-12: ], vRSR[-12: ], vSHW_Multi[-12: ], vSHW_Add[-12: ]))
     mEvaluations = np.zeros((len(mPredictions), 4))
     for i in range(len(mPredictions)):
@@ -629,11 +630,13 @@ def main():
     # Question (c)
     vYt = dfUmbrella['Umbrella Sales'].values
     sSeason = 'seasonal'
-    dfEva_Sea = fSeasonal_Predcit(vYt, sSeason)
+    dfEva_Sea = fSeasonal_Predcit(vYt, sSeason, 'MAE')
 
     # Question (d)
     vYt = dfSun['Sunspot'].values
-    fPlot1(pd.read_csv('Sunspot.csv', sep = ';', header = None)[[3]])
+    fPlot1(vYt)
+    dfEva_insample = fSeasonal_Predcit(vYt[: -12 * 2], 'monthly', 'MAE')
+    dfEva_outsample = fSeasonal_Predcit(vYt, 'monthly', 'MAE')
     
     
 ###########################################################
