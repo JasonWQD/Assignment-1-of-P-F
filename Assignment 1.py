@@ -80,13 +80,15 @@ def fES(vYt, dAlpha):
 def fRT(vYt):
     
     vYt_hat = np.zeros(len(vYt) - 2)
+    mBeta = np.zeros((len(vYt) - 2, 2))
     for i in range(len(vYt_hat)):
         mX = np.vstack([np.ones(i + 2), np.array(range(1, i + 3))]).T
         vY = vYt[: i + 2]
         vBeta = np.linalg.inv(mX.T @ mX) @ mX.T @ vY
+        mBeta[i, :] = vBeta
         vYt_hat[i] = np.array([1, i + 3]) @ vBeta
     
-    return np.round(vYt_hat, 2)
+    return np.round(vYt_hat, 2), mBeta
 
 ###########################################################
 ### fRW_Drift()
@@ -502,13 +504,85 @@ def fGasPredict(dfGas1, dfGas2):
     
     return dfTable1, dfTable2, dfTable3, dfTable4, dfTable5, dfTable7
 
+
+################## Bicycle prediction plots
+###########################################################
+### fPlot14()
+def fPlot14(dfBike):
+    plt.figure(dpi = 300)
+    plt.plot(dfBike["Bicycle"], color = 'red')
+    plt.legend(labels=["Bicycle Sales"])
+    plt.show()
+    return 
+
+###########################################################
+### fPlot15()
+def fPlot15(dfBike):
+    vRA = np.divide(np.cumsum(dfBike["Bicycle"].values), np.array(range(1, len(dfBike) + 1)))
+    plt.figure(dpi = 300)
+    plt.plot(dfBike["Bicycle"], color = 'red')
+    plt.plot(np.array(range(1, len(dfBike) + 1)), vRA, color = 'blue')
+    plt.legend(labels=["Bicycle Sales", "Running Avg Forecast"])
+    plt.show()
+    return 
+
+###########################################################
+### fPlot16()
+def fPlot16(dfBike):
+    vYt = dfBike["Bicycle"].values
+    vRT, _ = fRT(vYt)
+    vRT = np.insert(vRT, 0, [None, None])  # Fix the length
+    plt.figure(dpi = 300)
+    plt.plot(np.array(range(1, len(dfBike) + 1)), vYt, color='red')  # Adjust x-axis values
+    plt.plot(np.array(range(1, len(dfBike) + 1)), vRT, color='blue')  # Adjust x-axis values
+    plt.legend(labels=["Bicycle Sales", "Running Trend Forecast"])
+    plt.show()
+    return 
+
+###########################################################
+### fPlot17()
+def fPlot17(dfBike):
+    vYt = dfBike["Bicycle"].values
+    vRT, mBeta = fRT(vYt)
+    vRT = np.insert(vRT, 0, [None, None])  # Fix the length
+    # Add two new rows of 0 to the beginning of mBeta
+    mBeta = np.insert(mBeta, 0, np.zeros((2, 2)), axis=0)
+
+    fig = plt.figure(dpi = 300)
+    ax1 = fig.add_subplot(211)
+    ax1.plot(np.array(range(1, len(dfBike) + 1)), vYt, color='red')  # Adjust x-axis values
+    ax1.plot(np.array(range(1, len(dfBike) + 1)), vRT, color='blue')  # Adjust x-axis values
+    ax1.legend(labels=["Bicycle Sales", "Running Trend Forecast"])
+    
+    ax2 = fig.add_subplot(212)
+    n = len(vYt)
+    r = np.arange(n)+1 
+    a = mBeta[:,0]
+    b = mBeta[:,1]  
+    width = 0.25
+    ax2.bar(r, a, color = 'g', 
+        width = width,
+        label= "a_{t-1}") 
+    ax2.bar(r + width, b, color = 'b', 
+        width = width, 
+        label= "b_{t-1}") 
+    ax2.legend() 
+
+    plt.tight_layout(pad = 1.08)
+    plt.show()
+    return 
+
+###########################################################
+### fBicyclePredict()
+
+
 ###########################################################
 ### fPredict()
 def fPredict(vYt, bTune = 1, dAlpha_ES = 0, dAlpha_HW = 0, dBeta_HW = 0):
     
     vRW = fRW(vYt)
     vRA = fRA(vYt)
-    vRT = fRT(vYt)
+    vRT, _ = fRT(vYt)
     vRW_Drift = fRW_Drift(vYt)
     
     if bTune == 1:
@@ -614,6 +688,7 @@ def main():
     
     # Question (a)
     dfTable1, dfTable2, dfTable3, dfTable4, dfTable5, dfTable7 = fGasPredict(dfGas1, dfGas2)
+    
     
     # Question (b)
     vYt = dfData['Var3'].values[: 40]
