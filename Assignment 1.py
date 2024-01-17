@@ -640,7 +640,13 @@ def fPlot18(dfBike):
 
 ###########################################################
 ### fBicyclePredict()
-
+def fBicyclePredict(dfBike):
+    fPlot14(dfBike)
+    fPlot15(dfBike)
+    fPlot16(dfBike)
+    fPlot17(dfBike)
+    fPlot18(dfBike)
+    return 
 
 ###########################################################
 ### fPredict()
@@ -753,7 +759,7 @@ def main():
     
     # Question (a)
     dfTable1, dfTable2, dfTable3, dfTable4, dfTable5, dfTable7 = fGasPredict(dfGas1, dfGas2)
-    
+    fBicyclePredict(dfBike)
     
     # Question (b)
     vYt = dfData['Var3'].values[: 40]
