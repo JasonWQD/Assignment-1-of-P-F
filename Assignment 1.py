@@ -215,34 +215,28 @@ def fSeasonal_HW_Add(vYt, sSeason, dAlpha, dBeta, dGamma):
 ###########################################################
 ### fPlot1()
 def fPlot1(dfGas1):
-    
     plt.figure(dpi = 300)
     plt.plot(dfGas1, color = 'red')
     plt.show()
-    
     return 
 
 ###########################################################
 ### fPlot2()
 def fPlot2(dfGas1):
-    
     plt.figure(dpi = 300)
     plt.plot(dfGas1, color = 'red')
     plt.axhline(np.mean(np.mean(dfGas1['Gasoline'])), color = 'blue')
     plt.show()
-    
     return 
 
 ###########################################################
 ### fPlot3()
 def fPlot3(dfGas1):
-    
     vRA = np.divide(np.cumsum(dfGas1.values), np.array(range(1, len(dfGas1) + 1)))
     plt.figure(dpi = 300)
     plt.plot(dfGas1, color = 'red')
     plt.plot(np.array(range(1, len(dfGas1) + 1)), vRA, color = 'blue')
     plt.show()
-    
     return 
 
 ###########################################################
@@ -654,8 +648,8 @@ def fPredict(vYt, bTune = 1, dAlpha_ES = 0, dAlpha_HW = 0, dBeta_HW = 0):
     
     vRW = fRW(vYt)
     vRA = fRA(vYt)
-    vRT, _ = fRT(vYt)
-    vRW_Drift = fRW_Drift(vYt)
+    vRT, mBeta = fRT(vYt)
+    vRW_Drift, vCt = fRW_Drift(vYt)
     
     if bTune == 1:
         vMSE = np.zeros(10)
