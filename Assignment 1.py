@@ -188,7 +188,7 @@ def fSeasonal_HW_Multi(vYt, sSeason, dAlpha, dBeta, dGamma):
     return vYt_hat
 
 ###########################################################
-### fSeasonal_HW_Multi()
+### fSeasonal_HW_Add()
 def fSeasonal_HW_Add(vYt, sSeason, dAlpha, dBeta, dGamma):
     
     iN = len(vYt)
@@ -515,7 +515,7 @@ def fTable7(dfGas2):
 
 ###########################################################
 ### fGasPredict()
-def fGasPredict(dfGas1, dfGas2):
+def fGasPredict(dfGas1, dfGas2, dfUmbrella):
     
     fPlot1(dfGas1)
     fPlot2(dfGas1)
@@ -529,8 +529,9 @@ def fGasPredict(dfGas1, dfGas2):
     dfTable3, dfTable4 = fTable3_4(dfGas1)
     dfTable5 = fTable5(dfGas1)
     dfTable7 = fTable7(dfGas2)
+    fPlot84(dfUmbrella)
     
-    return dfTable1, dfTable2, dfTable3, dfTable4, dfTable5, dfTable7
+    return dfTable1, dfTable2, dfTable3, dfTable4, dfTable5, dfTable7, 
 
 
 ################## Bicycle prediction plots
@@ -601,6 +602,7 @@ def fPlot17(dfBike):
     return 
 
 ###########################################################
+<<<<<<< Updated upstream
 ### fPlot18()
 def fPlot18(dfBike):
     vYt = dfBike["Bicycle"].values
@@ -640,7 +642,43 @@ def fPlot18(dfBike):
 
 ###########################################################
 ### fBicyclePredict()
+<<<<<<< HEAD
+=======
+### fPlot84 page 84 for the umbrella
 
+from matplotlib.ticker import MultipleLocator
+def fPlot84(dfUmbrella):
+    x_values = np.arange(1, 6, 0.25)
+    plt.figure(dpi=300)
+    plt.plot(x_values, dfUmbrella["Umbrella Sales"], color='green', marker='o', linestyle='-')
+
+    plt.minorticks_on()
+
+    major_locator = MultipleLocator(1)
+    minor_locator = MultipleLocator(0.25)
+
+    plt.gca().xaxis.set_major_locator(major_locator)
+    plt.gca().xaxis.set_minor_locator(minor_locator)
+
+    # Set the vertical scale from 0 to 180
+    plt.yticks(np.arange(0, 181, 20))
+    # Set non-primary scale labels to empty strings
+    plt.yticks(np.arange(0, 181, 5), labels=["" if i % 20 != 0 else str(i) for i in range(0, 181, 5)], minor=True)
+
+    plt.show()
+
+    return
+>>>>>>> Stashed changes
+
+=======
+def fBicyclePredict(dfBike):
+    fPlot14(dfBike)
+    fPlot15(dfBike)
+    fPlot16(dfBike)
+    fPlot17(dfBike)
+    fPlot18(dfBike)
+    return 
+>>>>>>> a5929f2a977045c08f0d0303e55e50fa1db194f3
 
 ###########################################################
 ### fPredict()
@@ -752,8 +790,13 @@ def main():
     dfBike, dfGas1, dfGas2, dfUmbrella, dfData, dfSun = fData(lNames)
     
     # Question (a)
-    dfTable1, dfTable2, dfTable3, dfTable4, dfTable5, dfTable7 = fGasPredict(dfGas1, dfGas2)
+<<<<<<< HEAD
+    dfTable1, dfTable2, dfTable3, dfTable4, dfTable5, dfTable7 = fGasPredict(dfGas1, dfGas2, dfUmbrella)
     
+=======
+    dfTable1, dfTable2, dfTable3, dfTable4, dfTable5, dfTable7 = fGasPredict(dfGas1, dfGas2)
+    fBicyclePredict(dfBike)
+>>>>>>> a5929f2a977045c08f0d0303e55e50fa1db194f3
     
     # Question (b)
     vYt = dfData['Var3'].values[: 40]
