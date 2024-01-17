@@ -602,7 +602,6 @@ def fPlot17(dfBike):
     return 
 
 ###########################################################
-<<<<<<< Updated upstream
 ### fPlot18()
 def fPlot18(dfBike):
     vYt = dfBike["Bicycle"].values
@@ -642,8 +641,7 @@ def fPlot18(dfBike):
 
 ###########################################################
 ### fBicyclePredict()
-<<<<<<< HEAD
-=======
+
 ### fPlot84 page 84 for the umbrella
 
 from matplotlib.ticker import MultipleLocator
@@ -668,9 +666,7 @@ def fPlot84(dfUmbrella):
     plt.show()
 
     return
->>>>>>> Stashed changes
 
-=======
 def fBicyclePredict(dfBike):
     fPlot14(dfBike)
     fPlot15(dfBike)
@@ -678,7 +674,7 @@ def fBicyclePredict(dfBike):
     fPlot17(dfBike)
     fPlot18(dfBike)
     return 
->>>>>>> a5929f2a977045c08f0d0303e55e50fa1db194f3
+
 
 ###########################################################
 ### fPredict()
@@ -790,13 +786,9 @@ def main():
     dfBike, dfGas1, dfGas2, dfUmbrella, dfData, dfSun = fData(lNames)
     
     # Question (a)
-<<<<<<< HEAD
-    dfTable1, dfTable2, dfTable3, dfTable4, dfTable5, dfTable7 = fGasPredict(dfGas1, dfGas2, dfUmbrella)
-    
-=======
     dfTable1, dfTable2, dfTable3, dfTable4, dfTable5, dfTable7 = fGasPredict(dfGas1, dfGas2)
     fBicyclePredict(dfBike)
->>>>>>> a5929f2a977045c08f0d0303e55e50fa1db194f3
+
     
     # Question (b)
     vYt = dfData['Var3'].values[: 40]
