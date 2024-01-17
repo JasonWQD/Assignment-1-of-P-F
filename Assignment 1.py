@@ -20,6 +20,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from statsmodels.tsa.ar_model import AutoReg
 
+
 ###########################################################
 ### fData()
 def fData(lNames):
@@ -95,12 +96,14 @@ def fRT(vYt):
 def fRW_Drift(vYt):
     
     vYt_hat = np.zeros(len(vYt) - 2)
+    vCt = np.zeros(len(vYt) - 2)
     vDiff = np.diff(vYt)
     for i in range(len(vYt_hat)):
         dC = np.mean(vDiff[: i + 1])
         vYt_hat[i] = vYt[i + 1] + dC
+        vCt[i] = dC
     
-    return np.round(vYt_hat, 2)
+    return np.round(vYt_hat, 2), vCt
 
 ###########################################################
 ### fHolt_Winters()
@@ -396,31 +399,56 @@ def fPlot13(dfGas2):
     vRA = fRA(vYt)
     vRW = fRW(vYt)
     vES = fES(vYt, dAlpha = 0.2)
-    vAR = np.zeros(len(vYt) - 7)
-    for i in range(len(vYt) - 7):
-        AR_model = AutoReg(vYt[: 7], lags = 1).fit()
-        vAR = AR_model.predict(7, len(vYt))
+    
+    # Initialize arrays to store the forecasted values
+    start_observation = 6
+    vAR1 = np.zeros_like(vYt, dtype=float)
+    vAR2 = np.zeros_like(vYt, dtype=float)
+    
+    # Estmated AR(1) model parameters before adding new observations
+    vYt_before = vYt[:12]
+    model = AutoReg(vYt_before, lags =1).fit()
+    constant = model.params[0]
+    coefficient = model.params[1]
+    # Use the AR(1) formula to construct the one-step-ahead forecast
+    for t in range(start_observation, len(vYt)):
+        vAR1[t] = constant + coefficient * vYt[t-1]
+    vAR1 = vAR1[start_observation:]
+
+    # Estmate AR(1) model parameters after adding new obs
+    model = AutoReg(vYt, lags =1).fit()
+    constant = model.params[0]
+    coefficient = model.params[1]
+    # Use the AR(1) formula to construct the one-step-ahead forecast
+    for t in range(start_observation, len(vYt)):
+        vAR2[t] = constant + coefficient * vYt[t-1]
+    vAR2 = vAR2[start_observation:]
+    
+    # Merge two forecasts
+    vAR = np.zeros_like(vYt[6:], dtype=float)
+    vAR[:7] = vAR1[:7]
+    vAR[7:] = vAR2[7:]
     
     fig = plt.figure(dpi = 300)
     ax1 = fig.add_subplot(321)
-    ax1.plot(np.array(range(1, len(vYt) + 1)), vYt, label = 'Gasoline Sales')
-    ax1.axhline(np.mean(vYt[: 12]), color = 'red', label = 'Expert Forecast')
+    ax1.plot(np.array(range(1, len(vYt) + 1)), vYt, color = 'red', label = 'Gasoline Sales')
+    ax1.axhline(np.mean(vYt[: 12]), color = 'blue', label = 'Expert Forecast')
     ax1.legend(prop={'size': 6})
     ax2 = fig.add_subplot(322)
-    ax2.plot(np.array(range(1, len(vYt) + 1)), vYt, label = 'Gasoline Sales')
-    ax2.plot(np.array(range(2, len(vYt) + 1)), vRA, label = 'Running Avg Forecast')
+    ax2.plot(np.array(range(1, len(vYt) + 1)), vYt, color = 'red', label = 'Gasoline Sales')
+    ax2.plot(np.array(range(2, len(vYt) + 1)), vRA, color = 'blue', label = 'Running Avg Forecast')
     ax2.legend(prop={'size': 6})
     ax3 = fig.add_subplot(323)
-    ax3.plot(np.array(range(1, len(vYt) + 1)), vYt, label = 'Gasoline Sales')
-    ax3.plot(np.array(range(2, len(vYt) + 1)), vRW, label = 'Random Walk Forecast')
+    ax3.plot(np.array(range(1, len(vYt) + 1)), vYt, color = 'red', label = 'Gasoline Sales')
+    ax3.plot(np.array(range(2, len(vYt) + 1)), vRW, color = 'blue', label = 'Random Walk Forecast')
     ax3.legend(prop={'size': 6})
     ax4 = fig.add_subplot(324)
-    ax4.plot(np.array(range(1, len(vYt) + 1)), vYt, label = 'Gasoline Sales')
-    ax4.plot(np.array(range(7, len(vYt) + 1)), vAR, label = 'AR(1) Forecast')
+    ax4.plot(np.array(range(1, len(vYt) + 1)), vYt, color = 'red', label = 'Gasoline Sales')
+    ax4.plot(np.array(range(7, len(vYt) + 1)), vAR, color = 'blue', label = 'AR(1) Forecast')
     ax4.legend(prop={'size': 6})
     ax5 = fig.add_subplot(325)
-    ax5.plot(np.array(range(1, len(vYt) + 1)), vYt, label = 'Gasoline Sales')
-    ax5.plot(np.array(range(2, len(vYt) + 1)), vES, label = 'Exp Smo Forecast, alpha = 0.2')
+    ax5.plot(np.array(range(1, len(vYt) + 1)), vYt, color = 'red', label = 'Gasoline Sales')
+    ax5.plot(np.array(range(2, len(vYt) + 1)), vES, color = 'blue', label = 'Exp Smo Forecast, alpha = 0.2')
     ax5.legend(prop={'size': 6})
     plt.tight_layout(pad = 1.08)
     plt.show()
@@ -559,18 +587,56 @@ def fPlot17(dfBike):
     r = np.arange(n)+1 
     a = mBeta[:,0]
     b = mBeta[:,1]  
-    width = 0.25
+    width = 0.3
     ax2.bar(r, a, color = 'g', 
         width = width,
-        label= "a_{t-1}") 
+        label= r"$a_{t-1}$") 
     ax2.bar(r + width, b, color = 'b', 
         width = width, 
-        label= "b_{t-1}") 
+        label= r"$b_{t-1}$") 
     ax2.legend() 
 
     plt.tight_layout(pad = 1.08)
     plt.show()
     return 
+
+###########################################################
+### fPlot18()
+def fPlot18(dfBike):
+    vYt = dfBike["Bicycle"].values
+    vRW = fRW(vYt)
+    vRW = np.insert(vRW, 0, [None])  # Fix the length
+    vRW_dr, vCt = fRW_Drift(vYt)
+    vRW_dr = np.insert(vRW_dr, 0, [None, None])  # Fix the length
+    vCt = np.insert(vCt, 0, [0, 0])  # Fix the length
+
+    fig = plt.figure(dpi = 300)
+    ax1 = fig.add_subplot(311)
+    ax1.plot(np.array(range(1, len(dfBike) + 1)), vYt, color='red')  # Adjust x-axis values
+    ax1.plot(np.array(range(1, len(dfBike) + 1)), vRW, color='blue')  # Adjust x-axis values
+    ax1.legend(labels=["Bicycle Sales", "Random Walk Forecast"], fontsize="8")
+    
+    ax2 = fig.add_subplot(312)
+    ax2.plot(np.array(range(1, len(dfBike) + 1)), vYt, color='red')  # Adjust x-axis values
+    ax2.plot(np.array(range(1, len(dfBike) + 1)), vRW_dr, color='blue')  # Adjust x-axis values
+    ax2.legend(labels=["Bicycle Sales", "Random Walk Plus Drift Forecast"], fontsize="8")
+
+    ax3 = fig.add_subplot(313)
+    n = len(vYt)
+    r = np.arange(n)+1 
+    width = 0.5
+    ax3.bar(r, vCt, color = 'g', 
+        width = width,
+        label= r"$c_{t-1}$") 
+    ax3.legend(loc="upper left") 
+
+    plt.tight_layout(pad = 1.08)
+    plt.show()
+    return 
+
+
+###########################################################
+### fPlot20()
 
 ###########################################################
 ### fBicyclePredict()
@@ -663,7 +729,6 @@ def fTunning_Para(vYt, sSeason, bMethod, bEva):
 ###########################################################
 ### fSeasonal_Predcit()
 def fSeasonal_Predcit(vYt, sSeason, bEva):
-    
     
     vRW_Sea = fSeasonal_RW_Drift(vYt, sSeason)
     vRSR = fRunning_SR(vYt, sSeason)
