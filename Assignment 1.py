@@ -295,13 +295,13 @@ def fPlot5_6_7_8(dfGas1):
     dAlpha = 0.05
     vESweights[-1] = (1 - dAlpha) ** 49
     vESweights[: -1] = dAlpha * np.power((1 - dAlpha), np.array(range(50 - 1)))
-    ax1.bar(np.array(range(50)), vESweights, label = 'alpha = 0.05')
+    ax1.bar(np.array(range(49)), vESweights[: -1], label = 'alpha = 0.05')
     ax1.legend()
     dAlpha = 0.1
     vESweights[-1] = (1 - dAlpha) ** 49
     vESweights[: -1] = dAlpha * np.power((1 - dAlpha), np.array(range(50 - 1)))
     ax2 = fig.add_subplot(222)
-    ax2.bar(np.array(range(50)), vESweights, label = 'alpha = 0.10')
+    ax2.bar(np.array(range(49)), vESweights[: -1], label = 'alpha = 0.10')
     ax2.legend()
     dAlpha = 0.2
     vESweights[-1] = (1 - dAlpha) ** 49
@@ -540,10 +540,12 @@ def fPlot14(dfBike):
 ###########################################################
 ### fPlot15()
 def fPlot15(dfBike):
-    vRA = np.divide(np.cumsum(dfBike["Bicycle"].values), np.array(range(1, len(dfBike) + 1)))
+    # vRA = np.divide(np.cumsum(dfBike["Bicycle"].values), np.array(range(1, len(dfBike) + 1)))
+    vYt = dfBike["Bicycle"].values
+    vRA = fRA(vYt)
     plt.figure(dpi = 300)
     plt.plot(dfBike["Bicycle"], color = 'red')
-    plt.plot(np.array(range(1, len(dfBike) + 1)), vRA, color = 'blue')
+    plt.plot(np.array(range(2, len(dfBike) + 1)), vRA, color = 'blue')
     plt.legend(labels=["Bicycle Sales", "Running Avg Forecast"])
     plt.show()
     return 
@@ -628,9 +630,38 @@ def fPlot18(dfBike):
     plt.show()
     return 
 
+###########################################################
+### fPlot19()
+def fPlot19(dfBike):
+    
+    vYt = dfBike["Bicycle"].values
+    dAlpha = 0.2
+    dBeta = 0.2
+    vHW = fHolt_Winters(vYt, dAlpha, dBeta)
+    iPeriods = 40
+    mWeightsL = np.zeros((iPeriods, iPeriods))
+    mWeightsG = np.zeros((iPeriods, iPeriods))
+    mWeightsL[0, 0] = 1
+    mWeightsG[0, : 2] = np.array([1, -1])
+    for T in range(2, iPeriods + 1):
+        vWeightsL = np.zeros(iPeriods)
+        vWeightsL[: T - 1] = dAlpha * (1 - dAlpha) ** np.array(range(T - 1))
+        vWeightsL[T - 1] = (1 - dAlpha) ** (T - 1)
+        mWeightsL[T - 1] = vWeightsL
+        mWeightsG[T - 1] = dBeta * (mWeightsL[T - 1] - mWeightsL[T - 2]) + (1 - dBeta) * mWeightsG[T - 2]
+        
+    mWeightsL[-1] + mWeightsG[-1]
+    plt.vlines(np.array(range(1, iPeriods + 1)), 0, mWeightsL[-1] + mWeightsG[-1])
+
+    return 
 
 ###########################################################
 ### fPlot20()
+def fPlot20(dfBike):
+    vYt = dfBike["Bicycle"].values
+
+    
+    return 
 
 ###########################################################
 ### fBicyclePredict()
