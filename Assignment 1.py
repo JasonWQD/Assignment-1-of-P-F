@@ -658,8 +658,47 @@ def fPlot19(dfBike):
 ###########################################################
 ### fPlot20()
 def fPlot20(dfBike):
+    
     vYt = dfBike["Bicycle"].values
-
+    vAlpha_ES = np.zeros(len(vYt) - 2)
+    vAlpha_HW = np.zeros(len(vYt) - 2)
+    vBeta_HW = np.zeros(len(vYt) - 2)
+    for k in range(len(vYt) - 2):
+        vAlpha = np.linspace(0.1, 1, 20)
+        vBeta = np.linspace(0.1, 1, 20)
+        vYtt = vYt[: k + 2]
+        vMSE = np.zeros(len(vAlpha))
+        for i in range(len(vAlpha)):
+            vES = fES(vYtt, vAlpha[i])
+            dME, dMAE, dMAPE, dMSE = fEvaluation(vYtt, vES)
+            vMSE[i] = dMSE
+        vAlpha_ES[k] = vAlpha[np.argmin(vMSE)]
+        
+        mMSE = np.zeros((len(vAlpha), len(vBeta)))
+        for i in range(len(vAlpha)):
+            for j in range(len(vBeta)):
+                vHW = fHolt_Winters(vYtt, vAlpha[i], vBeta[j])
+                dME, dMAE, dMAPE, dMSE = fEvaluation(vYtt[1: ], vHW)
+                mMSE[i, j] = dMSE
+        vAlpha_HW[k] = vAlpha[np.argmin(mMSE) // 10]
+        vBeta_HW[k] = vBeta[np.argmin(mMSE) % 10]
+        print(k)
+    
+    fig = plt.figure(dpi = 300)
+    ax1 = fig.add_subplot(311)
+    ax1.bar(np.array(range(1, len(vYt) + 1)), np.insert(vAlpha_ES, 0, np.array([0, 0])), label = 'SE_alpha')
+    ax1.legend()
+    
+    ax2 = fig.add_subplot(312)
+    ax2.bar(np.array(range(1, len(vYt) + 1)), np.insert(vAlpha_HW, 0, np.array([0, 0])), label = 'HW_alpha')
+    ax2.legend()
+    
+    ax3 = fig.add_subplot(313)
+    ax3.bar(np.array(range(1, len(vYt) + 1)), np.insert(vBeta_HW, 0, np.array([0, 0])), label = 'HW_beta')
+    ax3.legend()
+    
+    plt.tight_layout(pad = 1.08)
+    plt.show()
     
     return 
 
