@@ -509,7 +509,7 @@ def fTable7(dfGas2):
 
 ###########################################################
 ### fGasPredict()
-def fGasPredict(dfGas1, dfGas2, dfUmbrella):
+def fGasPredict(dfGas1, dfGas2):
     
     fPlot1(dfGas1)
     fPlot2(dfGas1)
@@ -523,9 +523,8 @@ def fGasPredict(dfGas1, dfGas2, dfUmbrella):
     dfTable3, dfTable4 = fTable3_4(dfGas1)
     dfTable5 = fTable5(dfGas1)
     dfTable7 = fTable7(dfGas2)
-    fPlot84(dfUmbrella)
     
-    return dfTable1, dfTable2, dfTable3, dfTable4, dfTable5, dfTable7, 
+    return dfTable1, dfTable2, dfTable3, dfTable4, dfTable5, dfTable7 
 
 
 ################## Bicycle prediction plots
@@ -783,7 +782,6 @@ def main():
     dfTable1, dfTable2, dfTable3, dfTable4, dfTable5, dfTable7 = fGasPredict(dfGas1, dfGas2)
     fBicyclePredict(dfBike)
 
-    
     # Question (b)
     vYt = dfData['Var3'].values[: 40]
     dfEvaluation, dAlpha_ES, dAlpha_HW, dBeta_HW = fPredict(vYt)
