@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-dfUmbrella = pd.read_excel("D:/BDS2/block 3/Predication & Forecasting/Assignment 1/Umbrella.xlsx")
+dfUmbrella = pd.read_excel("Umbrella.xlsx")
 
 
 ##############################page 84
