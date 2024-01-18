@@ -74,7 +74,7 @@ def fES(vYt, dAlpha):
     for i in range(1, len(vYt)):
         vYt_hat[i] = dAlpha * vYt[i - 1] + (1 - dAlpha) * vYt_hat[i - 1]
     
-    return np.round(vYt_hat[1: ], 2)
+    return np.round(vYt_hat[1: ], 4)
 
 ###########################################################
 ### fRT()
@@ -103,7 +103,7 @@ def fRW_Drift(vYt):
         vYt_hat[i] = vYt[i + 1] + dC
         vCt[i] = dC
     
-    return np.round(vYt_hat, 2), vCt
+    return np.round(vYt_hat, 4), vCt
 
 ###########################################################
 ### fHolt_Winters()
@@ -118,7 +118,7 @@ def fHolt_Winters(vYt, dAlpha, dBeta):
         vYt_hat[i] = dL_new + dG
         dL = dL_new.copy()
     
-    return np.round(vYt_hat, 2)
+    return np.round(vYt_hat, 4)
 
 ###########################################################
 ### fSeasonal_RW_Drift()
@@ -423,6 +423,17 @@ def fPlot13(dfGas2):
     vAR[:7] = vAR1[:7]
     vAR[7:] = vAR2[7:]
     
+    ## Estmate alpha for ES forcast
+    vMSE = np.zeros(100)
+    vAlpha = np.linspace(0, 1, 100)
+    vBeta = np.linspace(0, 1, 100)
+    for i in range(len(vAlpha)):
+        vES = fES(vYt, vAlpha[i])
+        dME, dMAE, dMAPE, dMSE = fEvaluation(vYt, vES)
+        vMSE[i] = dMSE
+    dAlpha_ES = vAlpha[np.argmin(vMSE)]
+    vES_est = fES(vYt, dAlpha = dAlpha_ES)
+
     fig = plt.figure(dpi = 300)
     ax1 = fig.add_subplot(321)
     ax1.plot(np.array(range(1, len(vYt) + 1)), vYt, color = 'red', label = 'Gasoline Sales')
@@ -444,6 +455,11 @@ def fPlot13(dfGas2):
     ax5.plot(np.array(range(1, len(vYt) + 1)), vYt, color = 'red', label = 'Gasoline Sales')
     ax5.plot(np.array(range(2, len(vYt) + 1)), vES, color = 'blue', label = 'Exp Smo Forecast, alpha = 0.2')
     ax5.legend(prop={'size': 6})
+    ax5 = fig.add_subplot(326)
+    ax5.plot(np.array(range(1, len(vYt) + 1)), vYt, color = 'red', label = 'Gasoline Sales')
+    ax5.plot(np.array(range(2, len(vYt) + 1)), vES_est, color = 'blue', label = 'Exp Smo Forecast, alpha = est')
+    ax5.legend(prop={'size': 6})
+    
     plt.tight_layout(pad = 1.08)
     plt.show()
     
@@ -657,14 +673,76 @@ def fPlot19(dfBike):
 
 ###########################################################
 ### fPlot20()
-def fPlot20(dfBike):
+def fPlot20_table9(dfBike):
     vYt = dfBike["Bicycle"].values
+    vHW1 = fHolt_Winters(vYt, 0.2, 0.3)
+    vHW2 = fHolt_Winters(vYt, 0.2, 0.1)
 
+    vMSE = np.zeros(100)
+    vAlpha = np.linspace(0, 1, 100)
+    vBeta = np.linspace(0, 1, 100)
+
+    mMSE = np.zeros((len(vAlpha), len(vBeta)))
+    for i in range(len(vAlpha)):
+        for j in range(len(vBeta)):
+            vHW = fHolt_Winters(vYt, vAlpha[i], vBeta[j])
+            dME, dMAE, dMAPE, dMSE = fEvaluation(vYt[1:], vHW)
+            mMSE[i, j] = dMSE
+    dAlpha_HW = vAlpha[np.argmin(mMSE) // 10]
+    dBeta_HW = vBeta[np.argmin(mMSE) % 10]
     
-    return 
+    vHW3 = fHolt_Winters(vYt, dAlpha_HW, dBeta_HW)
+
+    for i in range(len(vAlpha)):
+        vES = fES(vYt, vAlpha[i])
+        dME, dMAE, dMAPE, dMSE = fEvaluation(vYt, vES)
+        vMSE[i] = dMSE
+    dAlpha_ES = vAlpha[np.argmin(vMSE)]
+    
+    vES_est = fES(vYt, dAlpha_ES)
+    
+    vES1 = fES(vYt, 0.2)
+    
+    vES2 = fES(vYt, 0.8)
+        
+    dfTable9 = pd.DataFrame(np.vstack([fEvaluation(vYt, vES1), fEvaluation(vYt, vES2), fEvaluation(vYt, vES_est),  fEvaluation(vYt[1: ], vHW2),  fEvaluation(vYt[1: ], vHW1),  fEvaluation(vYt[1: ], vHW3)]), columns = ['ME', 'MAE', 'MAPE', 'MSE'], index = ['Exp Smo (0.2)', 'Exp Smo (0.8)' , 'Exp Smo (est)', 'Double Exp Smo (0.2, 0.1)', 'Double Exp Smo (0.2, 0.3)', 'Double Exp Smo (est)'])
+    # fix length for plotting
+    vHW1 = np.insert(vHW1, 0, [None, None]) 
+    vHW2 = np.insert(vHW2, 0, [None, None]) 
+    vHW3 = np.insert(vHW3, 0, [None, None]) 
+
+    fig = plt.figure(dpi = 300)
+    ax1 = fig.add_subplot(311)
+    ax1.plot(np.array(range(1, len(dfBike) + 1)), vYt, color='red')  # Adjust x-axis values
+    ax1.plot(np.array(range(1, len(dfBike) + 1)), vHW1, color='blue')  # Adjust x-axis values
+    ax1.legend(labels=["Bicycle Sales", "Doub Exp Smo Forecast, alp=0.2, beta=0.3"], fontsize=8)
+    
+    ax2 = fig.add_subplot(312)
+    ax2.plot(np.array(range(1, len(dfBike) + 1)), vYt, color='red')  # Adjust x-axis values
+    ax2.plot(np.array(range(1, len(dfBike) + 1)), vHW2, color='blue')  # Adjust x-axis values
+    ax2.legend(labels=["Bicycle Sales", "Doub Exp Smo Forecast, alp=0.2, beta=0.1"], fontsize=8)
+    
+    ax2 = fig.add_subplot(313)
+    ax2.plot(np.array(range(1, len(dfBike) + 1)), vYt, color='red')  # Adjust x-axis values
+    ax2.plot(np.array(range(1, len(dfBike) + 1)), vHW3, color='blue')  # Adjust x-axis values
+    ax2.legend(labels=["Bicycle Sales", "Doub Exp Smo Forecast, alp=est, beta=est"], fontsize=8)
+
+    plt.show()
+
+    return dfTable9
 
 ###########################################################
-### fBicyclePredict()
+### fTable8()
+def fTable8(dfBike):
+    
+    vYt = dfBike['Bicycle'].values
+    vRA = fRA(vYt)
+    vRT, _ = fRT(vYt)
+    vRW = fRW(vYt)
+    vRW_drift, _ = fRW_Drift(vYt)
+    dfTable8 = pd.DataFrame(np.vstack([fEvaluation(vYt, vRA), fEvaluation(vYt[1: ], vRT), fEvaluation(vYt, vRW), fEvaluation(vYt[1: ], vRW_drift)]), columns = ['ME', 'MAE', 'MAPE', 'MSE'], index = ['Running Avg', 'Running Trend','Random Walk', 'Random Walk Plus Drift'])
+    
+    return dfTable8
 
 
 
@@ -676,7 +754,10 @@ def fBicyclePredict(dfBike):
     fPlot16(dfBike)
     fPlot17(dfBike)
     fPlot18(dfBike)
-    return 
+    dfTable9 = fPlot20_table9(dfBike)
+    dfTable8 = fTable8(dfBike)
+    
+    return dfTable8, dfTable9
 
 
 ###########################################################
@@ -726,8 +807,8 @@ def fPredict(vYt, bTune = 1, dAlpha_ES = 0, dAlpha_HW = 0, dBeta_HW = 0):
     
     if bTune == 1:
         vMSE = np.zeros(10)
-        vAlpha = np.linspace(0.1, 1, 10)
-        vBeta = np.linspace(0.1, 1, 10)
+        vAlpha = np.linspace(0.01, 1, 10)
+        vBeta = np.linspace(0.01, 1, 10)
         for i in range(len(vAlpha)):
             vES = fES(vYt, vAlpha[i])
             dME, dMAE, dMAPE, dMSE = fEvaluation(vYt[-11: ], vES[-10: ])
