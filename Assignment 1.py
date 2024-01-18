@@ -635,6 +635,23 @@ def fPlot18(dfBike):
 ###########################################################
 ### fBicyclePredict()
 
+
+
+###########################################################
+### fBicyclePredict
+def fBicyclePredict(dfBike):
+    fPlot14(dfBike)
+    fPlot15(dfBike)
+    fPlot16(dfBike)
+    fPlot17(dfBike)
+    fPlot18(dfBike)
+    return 
+
+
+###########################################################
+### For the umbrella
+
+
 ### fPlot84 page 84 for the umbrella
 
 from matplotlib.ticker import MultipleLocator
@@ -660,15 +677,13 @@ def fPlot84(dfUmbrella):
 
     return
 
-def fBicyclePredict(dfBike):
-    fPlot14(dfBike)
-    fPlot15(dfBike)
-    fPlot16(dfBike)
-    fPlot17(dfBike)
-    fPlot18(dfBike)
+###########################################################
+### def fUmbrellaPredict
+def fUmbrellaPredict(dfUmbrella):
+    
+    fPlot84(dfUmbrella)
+    
     return 
-
-
 ###########################################################
 ### fPredict()
 def fPredict(vYt, bTune = 1, dAlpha_ES = 0, dAlpha_HW = 0, dBeta_HW = 0):
@@ -713,7 +728,7 @@ def fPredict(vYt, bTune = 1, dAlpha_ES = 0, dAlpha_HW = 0, dBeta_HW = 0):
 
 ###########################################################
 ### fTunning_Para()
-def fTunning_Para(vYt, sSeason, bMethod, bEva):
+def fTunning_Para(vYt, sSeason, bMethod, bEva, iCheck):
     
     vAlpha = np.linspace(0.1, 1, 10)
     vBeta = np.linspace(0.1, 1, 10)
@@ -725,23 +740,23 @@ def fTunning_Para(vYt, sSeason, bMethod, bEva):
                 if bMethod == 'Seasonal_HW_Multi':
                     vSHW = fSeasonal_HW_Multi(vYt, sSeason, vAlpha[i], vBeta[j], vGamma[k])
                     if bEva == 'ME':
-                        mEva[i, j, k] = fEvaluation(vYt[-13: ], vSHW[-12: ])[0]
+                        mEva[i, j, k] = fEvaluation(vYt[-iCheck-1: ], vSHW[-iCheck: ])[0]
                     elif bEva == 'MAE':
-                        mEva[i, j, k] = fEvaluation(vYt[-13: ], vSHW[-12: ])[1]
+                        mEva[i, j, k] = fEvaluation(vYt[-iCheck-1: ], vSHW[-iCheck: ])[1]
                     elif bEva == 'MAPE':
-                        mEva[i, j, k] = fEvaluation(vYt[-13: ], vSHW[-12: ])[2]
+                        mEva[i, j, k] = fEvaluation(vYt[-iCheck-1: ], vSHW[-iCheck: ])[2]
                     elif bEva == 'MSE':
-                        mEva[i, j, k] = fEvaluation(vYt[-13: ], vSHW[-12: ])[3]
+                        mEva[i, j, k] = fEvaluation(vYt[-iCheck-1: ], vSHW[-iCheck: ])[3]
                 if bMethod == 'Seasonal_HW_Add':
                     vSHW = fSeasonal_HW_Add(vYt, sSeason, vAlpha[i], vBeta[j], vGamma[k])
                     if bEva == 'ME':
-                        mEva[i, j, k] = fEvaluation(vYt[-13: ], vSHW[-12: ])[0]
+                        mEva[i, j, k] = fEvaluation(vYt[-iCheck-1: ], vSHW[-iCheck: ])[0]
                     elif bEva == 'MAE':
-                        mEva[i, j, k] = fEvaluation(vYt[-13: ], vSHW[-12: ])[1]
+                        mEva[i, j, k] = fEvaluation(vYt[-iCheck-1: ], vSHW[-iCheck: ])[1]
                     elif bEva == 'MAPE':
-                        mEva[i, j, k] = fEvaluation(vYt[-13: ], vSHW[-12: ])[2]
+                        mEva[i, j, k] = fEvaluation(vYt[-iCheck-1: ], vSHW[-iCheck: ])[2]
                     elif bEva == 'MSE':
-                        mEva[i, j, k] = fEvaluation(vYt[-13: ], vSHW[-12: ])[3]
+                        mEva[i, j, k] = fEvaluation(vYt[-iCheck-1: ], vSHW[-iCheck: ])[3]
     iIndex = np.argmin(mEva)
     dAlpha_HW = vAlpha[iIndex // 100]
     dBeta_HW = vBeta[iIndex // 10 % 10]
@@ -755,17 +770,17 @@ def fTunning_Para(vYt, sSeason, bMethod, bEva):
 
 ###########################################################
 ### fSeasonal_Predcit()
-def fSeasonal_Predcit(vYt, sSeason, bEva):
+def fSeasonal_Predcit(vYt, sSeason, bEva, iCheck):
     
     vRW_Sea = fSeasonal_RW_Drift(vYt, sSeason)
     vRSR = fRunning_SR(vYt, sSeason)
     
-    vSHW_Multi = fTunning_Para(vYt, sSeason, 'Seasonal_HW_Multi', bEva)
-    vSHW_Add = fTunning_Para(vYt, sSeason, 'Seasonal_HW_Add', bEva)
-    mPredictions = np.vstack((vRW_Sea[-12: ], vRSR[-12: ], vSHW_Multi[-12: ], vSHW_Add[-12: ]))
+    vSHW_Multi = fTunning_Para(vYt, sSeason, 'Seasonal_HW_Multi', bEva, iCheck)
+    vSHW_Add = fTunning_Para(vYt, sSeason, 'Seasonal_HW_Add', bEva, iCheck)
+    mPredictions = np.vstack((vRW_Sea[-iCheck: ], vRSR[-iCheck: ], vSHW_Multi[-iCheck: ], vSHW_Add[-12: ]))
     mEvaluations = np.zeros((len(mPredictions), 4))
     for i in range(len(mPredictions)):
-        mEvaluations[i] = fEvaluation(vYt[-13: ], mPredictions[i])
+        mEvaluations[i] = fEvaluation(vYt[-iCheck-1: ], mPredictions[i])
     dfEvaluation = pd.DataFrame(mEvaluations, columns = ['ME', 'MAE', 'MAPE', 'MSE'], index = ['RW_Sea', 'RSR', 'SHW_Multi', 'SHW_Add'])
     
     return dfEvaluation
@@ -781,7 +796,8 @@ def main():
     # Question (a)
     dfTable1, dfTable2, dfTable3, dfTable4, dfTable5, dfTable7 = fGasPredict(dfGas1, dfGas2)
     fBicyclePredict(dfBike)
-
+    fUmbrellaPredict(dfUmbrella)
+    
     # Question (b)
     vYt = dfData['Var3'].values[: 40]
     dfEvaluation, dAlpha_ES, dAlpha_HW, dBeta_HW = fPredict(vYt)
