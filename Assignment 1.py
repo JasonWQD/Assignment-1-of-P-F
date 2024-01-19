@@ -1150,10 +1150,10 @@ def main():
     fUmbrellaQa (dfUmbrella)
     
     # Question (b)
-    vYt = dfData['Var3'].values[: 40]
+    vYt = dfData['Var1'].values[: 40]
     dfEvaluation1, dAlpha_ES, dAlpha_HW, dBeta_HW = fPredict(vYt)
     
-    vYt = dfData['Var3'].values
+    vYt = dfData['Var1'].values
     dfEvaluation2 = fPredict(vYt, bTune = 0, dAlpha_ES = dAlpha_ES, dAlpha_HW = dAlpha_HW, dBeta_HW = dBeta_HW)
     
     # Question (c)
