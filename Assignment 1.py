@@ -819,6 +819,96 @@ def fPredict(vYt, bTune = 1, dAlpha_ES = 0, dAlpha_HW = 0, dBeta_HW = 0):
         mEvaluations[i] = fEvaluation(vYt[-11: ], mPredictions[i])
     dfEvaluation = pd.DataFrame(mEvaluations, columns = ['ME', 'MAE', 'MAPE', 'MSE'], index = ['RW', 'RA', 'RT', 'RW_Drift', 'ES', 'HW'])
     
+    ### For plotting
+    vRA = np.insert(vRA, 0, [None])  # Fix the length
+    vRT = np.insert(vRT, 0, [None, None])  # Fix the length
+    mBeta = np.insert(mBeta, 0, np.zeros((2, 2)), axis=0)
+
+    ### Plot Run Average vs Run Trend
+    fig = plt.figure(dpi = 300)
+    ax1 = fig.add_subplot(311)
+    ax1.plot(np.array(range(1, len(vYt) + 1)), vYt, color='red')  # Adjust x-axis values
+    ax1.plot(np.array(range(1, len(vYt) + 1)), vRA, color='blue')  # Adjust x-axis values
+    ax1.legend(labels=["Observations", "Running Average Forecast"], fontsize="7")
+
+    ax2 = fig.add_subplot(312)
+    ax2.plot(np.array(range(1, len(vYt) + 1)), vYt, color='red')  # Adjust x-axis values
+    ax2.plot(np.array(range(1, len(vYt) + 1)), vRT, color='blue')  # Adjust x-axis values
+    ax2.legend(labels=["Observations", "Running Trend Forecast"],fontsize="7")
+    
+    ax3 = fig.add_subplot(313)
+    n = len(vYt)
+    r = np.arange(n)+1 
+    a = mBeta[:,0]
+    b = mBeta[:,1]  
+    width = 0.3
+    ax3.bar(r, a, color = 'g', 
+        width = width,
+        label= r"$a_{t-1}$") 
+    ax3.bar(r + width, b, color = 'b', 
+        width = width, 
+        label= r"$b_{t-1}$") 
+    ax3.legend(fontsize="7") 
+
+    plt.tight_layout(pad = 1.08)
+    plt.show()
+    
+    fig = plt.figure(dpi = 300)
+    ax1 = fig.add_subplot(211)
+    ax1.plot(vYt, color = 'red')
+    ax1.plot(np.array(range(len(vYt) )), vRA, color = 'blue')
+    ax1.legend(labels=["Observations", "Running Average Forecast"], fontsize="7")
+    
+    ax2 = fig.add_subplot(212)
+    ax2.vlines(np.array(range( len(vYt) )), 0, vYt - vRA)
+    ax2.axhline(0)
+    ax2.scatter(np.array(range( len(vYt))), vYt - vRA)
+    plt.tight_layout(pad = 1.08)
+    plt.show()
+    
+    fig = plt.figure(dpi = 300)
+    ax1 = fig.add_subplot(211)
+    ax1.plot(vYt, color = 'red')
+    ax1.plot(np.array(range(0, len(vYt))), vRT, color = 'blue')
+    ax1.legend(labels=["Observations", "Running Trend Forecast"], fontsize="7")
+    
+    ax2 = fig.add_subplot(212)
+    ax2.vlines(np.array(range(0, len(vYt))), 0, vYt - vRT)
+    ax2.axhline(0)
+    ax2.scatter(np.array(range(0, len(vYt))), vYt - vRT)
+    plt.tight_layout(pad = 1.08)
+    plt.show()
+    
+    ### Plot RW vs RW with Drift
+    vRW = np.insert(vRW, 0, [None])  # Fix the length
+    vRW_Drift = np.insert(vRW_Drift, 0, [None, None])  # Fix the length
+    vCt = np.insert(vCt, 0, [0, 0])  # Fix the length
+    
+    fig = plt.figure(dpi = 300)
+    ax1 = fig.add_subplot(311)
+    ax1.plot(np.array(range(1, len(vYt) + 1)), vYt, color='red')  # Adjust x-axis values
+    ax1.plot(np.array(range(1, len(vYt) + 1)), vRW, color='blue')  # Adjust x-axis values
+    ax1.legend(labels=["Observations", "Random Walk Forecast"], fontsize="7")
+    
+    ax2 = fig.add_subplot(312)
+    ax2.plot(np.array(range(1, len(vYt) + 1)), vYt, color='red')  # Adjust x-axis values
+    ax2.plot(np.array(range(1, len(vYt) + 1)), vRW_Drift, color='blue')  # Adjust x-axis values
+    ax2.legend(labels=["Observations", "Random Walk Plus Drift Forecast"], fontsize="7")
+
+    ax3 = fig.add_subplot(313)
+    n = len(vYt)
+    r = np.arange(n)+1 
+    width = 0.5
+    ax3.bar(r, vCt, color = 'g', 
+        width = width,
+        label= r"$c_{t-1}$") 
+    ax3.legend(fontsize="7") 
+
+    plt.tight_layout(pad = 1.08)
+    plt.show()
+    
+    
+    
     if bTune == 1:
         return dfEvaluation, dAlpha_ES, dAlpha_HW, dBeta_HW
     else:
