@@ -745,7 +745,6 @@ def fTable8(dfBike):
     return dfTable8
 
 
-
 ###########################################################
 ### fBicyclePredict
 def fBicyclePredict(dfBike):
