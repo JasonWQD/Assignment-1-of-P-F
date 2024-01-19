@@ -879,7 +879,7 @@ def fPredict(vYt, bTune = 1, dAlpha_ES = 0, dAlpha_HW = 0, dBeta_HW = 0):
     plt.tight_layout(pad = 1.08)
     plt.show()
     
-    ### Plot RW vs RW with Drift
+    ### Plot Ran Walk vs RW with Drift
     vRW = np.insert(vRW, 0, [None])  # Fix the length
     vRW_Drift = np.insert(vRW_Drift, 0, [None, None])  # Fix the length
     vCt = np.insert(vCt, 0, [0, 0])  # Fix the length
@@ -907,6 +907,22 @@ def fPredict(vYt, bTune = 1, dAlpha_ES = 0, dAlpha_HW = 0, dBeta_HW = 0):
     plt.tight_layout(pad = 1.08)
     plt.show()
     
+    ### Plot ES and Holt Winters
+    
+    vES = np.insert(vES, 0, [None])  # Fix the length
+    vHW = np.insert(vHW, 0, [None, None])  # Fix the length
+    fig = plt.figure(dpi = 300)
+    ax1 = fig.add_subplot(211)
+    ax1.plot(vYt, color = 'red')
+    ax1.plot(np.array(range(len(vYt) )), vES, color = 'blue')
+    ax1.legend(labels=["Observations", "Exp Smo forecast, alpha = est"], fontsize="7")
+    
+    ax2 = fig.add_subplot(212)
+    ax2.plot(vYt, color = 'red')
+    ax2.plot(np.array(range(len(vYt) )), vHW, color = 'blue')
+    ax2.legend(labels=["Observations", "Double Exp Smo forecast, alpha beta = est"], fontsize="7")
+    plt.tight_layout(pad = 1.08)
+    plt.show()
     
     
     if bTune == 1:
@@ -988,10 +1004,10 @@ def main():
     
     # Question (b)
     vYt = dfData['Var3'].values[: 40]
-    dfEvaluation, dAlpha_ES, dAlpha_HW, dBeta_HW = fPredict(vYt)
+    dfEvaluation1, dAlpha_ES, dAlpha_HW, dBeta_HW = fPredict(vYt)
     
     vYt = dfData['Var3'].values
-    dfEvaluation = fPredict(vYt, bTune = 0, dAlpha_ES = dAlpha_ES, dAlpha_HW = dAlpha_HW, dBeta_HW = dBeta_HW)
+    dfEvaluation2 = fPredict(vYt, bTune = 0, dAlpha_ES = dAlpha_ES, dAlpha_HW = dAlpha_HW, dBeta_HW = dBeta_HW)
     
     # Question (c)
     vYt = dfUmbrella['Umbrella Sales'].values
