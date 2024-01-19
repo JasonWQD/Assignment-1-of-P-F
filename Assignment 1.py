@@ -423,6 +423,16 @@ def fPlot13(dfGas2):
     vAR[:7] = vAR1[:7]
     vAR[7:] = vAR2[7:]
     
+    ## Estmate alpha for ES forcast
+    vMSE = np.zeros(100)
+    vAlpha = np.linspace(0, 1, 100)
+    for i in range(len(vAlpha)):
+        vES = fES(vYt, vAlpha[i])
+        dME, dMAE, dMAPE, dMSE = fEvaluation(vYt, vES)
+        vMSE[i] = dMSE
+    dAlpha_ES = vAlpha[np.argmin(vMSE)]
+    vES_est = fES(vYt, dAlpha = dAlpha_ES)
+        
     fig = plt.figure(dpi = 300)
     ax1 = fig.add_subplot(321)
     ax1.plot(np.array(range(1, len(vYt) + 1)), vYt, color = 'red', label = 'Gasoline Sales')
@@ -444,6 +454,10 @@ def fPlot13(dfGas2):
     ax5.plot(np.array(range(1, len(vYt) + 1)), vYt, color = 'red', label = 'Gasoline Sales')
     ax5.plot(np.array(range(2, len(vYt) + 1)), vES, color = 'blue', label = 'Exp Smo Forecast, alpha = 0.2')
     ax5.legend(prop={'size': 6})
+    ax6 = fig.add_subplot(326)
+    ax6.plot(np.array(range(1, len(vYt) + 1)), vYt, color = 'red', label = 'Gasoline Sales')
+    ax6.plot(np.array(range(2, len(vYt) + 1)), vES_est, color = 'blue', label = 'Exp Smo Forecast, alpha = 0.2')
+    ax6.legend(prop={'size': 6})
     plt.tight_layout(pad = 1.08)
     plt.show()
     
@@ -908,7 +922,6 @@ def fPredict(vYt, bTune = 1, dAlpha_ES = 0, dAlpha_HW = 0, dBeta_HW = 0):
     plt.show()
     
     ### Plot ES and Holt Winters
-    
     vES = np.insert(vES, 0, [None])  # Fix the length
     vHW = np.insert(vHW, 0, [None, None])  # Fix the length
     fig = plt.figure(dpi = 300)
@@ -920,10 +933,38 @@ def fPredict(vYt, bTune = 1, dAlpha_ES = 0, dAlpha_HW = 0, dBeta_HW = 0):
     ax2 = fig.add_subplot(212)
     ax2.plot(vYt, color = 'red')
     ax2.plot(np.array(range(len(vYt) )), vHW, color = 'blue')
-    ax2.legend(labels=["Observations", "Double Exp Smo forecast, alpha beta = est"], fontsize="7")
+    ax2.legend(labels=["Observations", "HW forecast, alpha beta = est"], fontsize="7")
     plt.tight_layout(pad = 1.08)
     plt.show()
     
+    ### wrap up plot
+    fig = plt.figure(dpi = 300)
+    ax1 = fig.add_subplot(321)
+    ax1.plot(np.array(range( len(vYt) )), vYt, color = 'red', label = 'Observations')
+    ax1.plot(np.array(range(len(vYt))), vRA, color = 'blue', label = 'Running Avg Forecast')
+    ax1.legend(prop={'size': 6})
+    ax2 = fig.add_subplot(322)
+    ax2.plot(np.array(range( len(vYt) )), vYt, color = 'red', label = 'Observations')
+    ax2.plot(np.array(range(len(vYt) )), vRT, color = 'blue', label = 'Running Trend Forecast')
+    ax2.legend(prop={'size': 6})
+    ax3 = fig.add_subplot(323)
+    ax3.plot(np.array(range(1, len(vYt) + 1)), vYt, color = 'red', label = 'Observations')
+    ax3.plot(np.array(range(1, len(vYt) + 1)), vRW, color = 'blue', label = 'Random Walk Forecast')
+    ax3.legend(prop={'size': 6})
+    ax4 = fig.add_subplot(324)
+    ax4.plot(np.array(range(1, len(vYt) + 1)), vYt, color = 'red', label = 'Observations')
+    ax4.plot(np.array(range(1, len(vYt) + 1)), vRW_Drift, color = 'blue', label = 'Random Walk w Drift Forecast')
+    ax4.legend(prop={'size': 6})
+    ax5 = fig.add_subplot(325)
+    ax5.plot(np.array(range(1, len(vYt) + 1)), vYt, color = 'red', label = 'Observations')
+    ax5.plot(np.array(range(1, len(vYt) + 1)), vES, color = 'blue', label = 'Exp Smo Forecast, alpha = est')
+    ax5.legend(prop={'size': 6})
+    ax6 = fig.add_subplot(326)
+    ax6.plot(np.array(range(1, len(vYt) + 1)), vYt, color = 'red', label = 'Observations')
+    ax6.plot(np.array(range(1, len(vYt) + 1)), vHW, color = 'blue', label = 'Double Exp Smo Forecast, alpha beta = est')
+    ax6.legend(prop={'size': 6})
+    plt.tight_layout(pad = 1.08)
+    plt.show()
     
     if bTune == 1:
         return dfEvaluation, dAlpha_ES, dAlpha_HW, dBeta_HW
