@@ -747,8 +747,22 @@ def fBicyclePredict(dfBike):
 ###########################################################
 ### For the umbrella
 
-
-### fPlot84 page 84 for the umbrella
+def fUmbrellaQa (dfUmbrella):
+    result = sm.tsa.ExponentialSmoothing(dfUmbrella["Umbrella Sales"].values, seasonal='add', seasonal_periods=4).fit()
+    dLt = result.level
+    dHt = result.season
+    dGt = dfUmbrella["Umbrella Sales"] - dLt - dHt
+    model = sm.tsa.ExponentialSmoothing(dfUmbrella["Umbrella Sales"], trend='add', seasonal='add', seasonal_periods=4, use_boxcox=False)
+    hw_model = model.fit(optimized=True, remove_bias=False)
+    forecast = hw_model.forecast(steps=8)
+    forecast_values = forecast
+    fPlot84(dfUmbrella)
+    fPlot85(dfUmbrella, dLt, dHt, dGt)
+    fPlot86(dfUmbrella, forecast_values)
+    return
+    
+###########################################################
+### fPlot84 
 
 from matplotlib.ticker import MultipleLocator
 def fPlot84(dfUmbrella):
@@ -772,6 +786,79 @@ def fPlot84(dfUmbrella):
     plt.show()
 
     return
+
+###########################################################
+### fPlot85
+import statsmodels.api as sm
+
+def fPlot85(dfUmbrella, dLt, dHt, dGt):
+    x_values = np.arange(1, 6, 0.25)
+
+    fig, axs = plt.subplots(3, 1, figsize=(8, 12), dpi=300)
+
+    # Plot 85_1
+    axs[0].plot(x_values, dfUmbrella["Umbrella Sales"], color='green', marker='o', linestyle='-')
+    axs[0].plot(x_values, dLt, color='red', linestyle='-', linewidth=2)
+    axs[0].minorticks_on()
+    axs[0].xaxis.set_major_locator(MultipleLocator(1))
+    axs[0].xaxis.set_minor_locator(MultipleLocator(0.25))
+    axs[0].set_yticks(np.arange(0, 181, 20))
+    axs[0].set_yticks(np.arange(0, 181, 5), labels=["" if i % 20 != 0 else str(i) for i in range(0, 181, 5)], minor=True)
+
+    # Plot 85_2
+    axs[1].plot(x_values, dHt, color='blue', linestyle='-', marker='o')
+    axs[1].axhline(y=0, color='black', linestyle='-', linewidth=1)
+    axs[1].minorticks_on()
+    axs[1].xaxis.set_major_locator(MultipleLocator(1))
+    axs[1].xaxis.set_minor_locator(MultipleLocator(0.25))
+    axs[1].set_yticks([-25, 0, 25])
+
+    # Plot 85_3
+    axs[2].plot(x_values, dGt, color='black', marker='o', linestyle='')
+    axs[2].axhline(y=0, color='black', linestyle='-', linewidth=1)
+    axs[2].vlines(x_values, ymin=0, ymax=dGt, color='black', linestyle='-', linewidth=1)
+    axs[2].minorticks_on()
+    axs[2].xaxis.set_major_locator(MultipleLocator(1))
+    axs[2].xaxis.set_minor_locator(MultipleLocator(0.25))
+    axs[2].set_yticks([-5, 0, 5])
+
+    plt.tight_layout()
+    plt.show()
+    
+    return
+
+###########################################################
+### fPlot86
+
+def fPlot86(dfUmbrella, forecast_values):
+    x_known = np.arange(1, 6, 0.25)
+    x_forecast = np.arange(6, 8, 0.25)
+
+    plt.figure(dpi=300)
+
+    plt.plot(x_known, dfUmbrella["Umbrella Sales"], color='green', marker='o', linestyle='-')
+
+    plt.plot(x_forecast, forecast_values, color='blue', marker='o', linestyle='-')
+
+   
+    plt.axvline(x=6, color='black', linestyle='--')
+
+    plt.minorticks_on()
+
+    major_locator = MultipleLocator(1)
+    minor_locator = MultipleLocator(0.25)
+
+    plt.gca().xaxis.set_major_locator(major_locator)
+    plt.gca().xaxis.set_minor_locator(minor_locator)
+
+    
+    plt.yticks(np.arange(0, 181, 20))
+    
+    plt.yticks(np.arange(0, 181, 5), labels=["" if i % 20 != 0 else str(i) for i in range(0, 181, 5)], minor=True)
+
+    plt.show()
+
+    return 
 
 ###########################################################
 ### def fUmbrellaPredict
@@ -1000,7 +1087,7 @@ def main():
     # Question (a)
     dfTable1, dfTable2, dfTable3, dfTable4, dfTable5, dfTable7 = fGasPredict(dfGas1, dfGas2)
     dfTable8, dfTable9 = fBicyclePredict(dfBike)
-    fUmbrellaPredict(dfUmbrella)
+    fUmbrellaQa (dfUmbrella)
     
     # Question (b)
     vYt = dfData['Var3'].values[: 40]
