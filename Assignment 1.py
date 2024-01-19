@@ -875,11 +875,30 @@ def fSeasonal_Predcit(vYt, sSeason, bEva, iCheck):
     
     vSHW_Multi, dAlpha_HW, dBeta_HW, dGamma_HW = fTunning_Para(vYt, sSeason, 'Seasonal_HW_Multi', bEva, iCheck)
     vSHW_Add, dAlpha_HW, dBeta_HW, dGamma_HW = fTunning_Para(vYt, sSeason, 'Seasonal_HW_Add', bEva, iCheck)
-    mPredictions = np.vstack((vRW_Sea[-iCheck: ], vRSR[-iCheck: ], vSHW_Multi[-iCheck: ], vSHW_Add[-12: ]))
+    mPredictions = np.vstack((vRW_Sea[-iCheck: ], vRSR[-iCheck: ], vSHW_Multi[-iCheck: ], vSHW_Add[-iCheck: ]))
     mEvaluations = np.zeros((len(mPredictions), 4))
     for i in range(len(mPredictions)):
         mEvaluations[i] = fEvaluation(vYt[-iCheck-1: ], mPredictions[i])
     dfEvaluation = pd.DataFrame(mEvaluations, columns = ['ME', 'MAE', 'MAPE', 'MSE'], index = ['RW_Sea', 'RSR', 'SHW_Multi', 'SHW_Add'])
+    
+    fig = plt.figure(dpi = 300, figsize = (10, 5))
+    ax1 = fig.add_subplot(311)
+    ax1.plot(np.array(range(1, len(vYt) + 1)), vYt, label = 'Umbrella sales', color='red')
+    ax1.plot(np.array(range(6, len(vYt) + 1)), vRW_Sea, label = 'Seasonal RW (drift)', color='blue')
+    ax1.legend(fontsize = '8')
+    
+    ax2 = fig.add_subplot(312)
+    ax2.plot(np.array(range(1, len(vYt) + 1)), vYt, label = 'Umbrella sales', color='red')
+    ax2.plot(np.array(range(6, len(vYt) + 1)), vRSR, label = 'Running sea regre', color='blue')
+    ax2.legend(fontsize = '8')
+    
+    ax3 = fig.add_subplot(313)
+    ax3.plot(np.array(range(1, len(vYt) + 1)), vYt, label = 'Umbrella sales', color='red')
+    ax3.plot(np.array(range(6, len(vYt) + 1)), vSHW_Multi, label = 'HW Multi forecasts', color='blue')
+    ax3.legend(fontsize = '8')
+    
+    plt.tight_layout(pad = 1.08)
+    plt.show()
     
     return dfEvaluation
 
@@ -905,13 +924,13 @@ def main():
     
     # Question (c)
     vYt = dfUmbrella['Umbrella Sales'].values
-    dfEva_Sea = fSeasonal_Predcit(vYt, 'seasonal', 'MAE')
+    dfEva_Sea = fSeasonal_Predcit(vYt, 'seasonal', 'MSE', 12)
 
     # Question (d)
     vYt = dfSun['Sunspot'].values
     fPlot1(vYt)
-    dfEva_insample = fSeasonal_Predcit(vYt[: -12 * 2], 'monthly', 'MAE')
-    dfEva_outsample = fSeasonal_Predcit(vYt, 'monthly', 'MAE')
+    dfEva_insample = fSeasonal_Predcit(vYt[: -12 * 2], 'monthly', 'MAE', 12)
+    dfEva_outsample = fSeasonal_Predcit(vYt, 'monthly', 'MAE', 12)
     
     
 ###########################################################
