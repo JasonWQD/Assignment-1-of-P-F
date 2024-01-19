@@ -751,9 +751,11 @@ def fPlot84(dfUmbrella):
 ### def fUmbrellaPredict
 def fUmbrellaPredict(dfUmbrella):
     
-    fPlot84(dfUmbrella)
+    vYt = dfUmbrella['Umbrella Sales'].values
+    fSeasonal_Predcit(vYt, 'seasonal', 'MSE', 12)
     
     return 
+
 ###########################################################
 ### fPredict()
 def fPredict(vYt, bTune = 1, dAlpha_ES = 0, dAlpha_HW = 0, dBeta_HW = 0):
@@ -836,7 +838,7 @@ def fTunning_Para(vYt, sSeason, bMethod, bEva, iCheck):
     elif bMethod == 'Seasonal_HW_Add':
         vYt_hat = fSeasonal_HW_Add(vYt, sSeason, dAlpha_HW, dBeta_HW, dGamma_HW)
     
-    return vYt_hat
+    return vYt_hat, dAlpha_HW, dBeta_HW, dGamma_HW
 
 ###########################################################
 ### fSeasonal_Predcit()
@@ -845,8 +847,8 @@ def fSeasonal_Predcit(vYt, sSeason, bEva, iCheck):
     vRW_Sea = fSeasonal_RW_Drift(vYt, sSeason)
     vRSR = fRunning_SR(vYt, sSeason)
     
-    vSHW_Multi = fTunning_Para(vYt, sSeason, 'Seasonal_HW_Multi', bEva, iCheck)
-    vSHW_Add = fTunning_Para(vYt, sSeason, 'Seasonal_HW_Add', bEva, iCheck)
+    vSHW_Multi, dAlpha_HW, dBeta_HW, dGamma_HW = fTunning_Para(vYt, sSeason, 'Seasonal_HW_Multi', bEva, iCheck)
+    vSHW_Add, dAlpha_HW, dBeta_HW, dGamma_HW = fTunning_Para(vYt, sSeason, 'Seasonal_HW_Add', bEva, iCheck)
     mPredictions = np.vstack((vRW_Sea[-iCheck: ], vRSR[-iCheck: ], vSHW_Multi[-iCheck: ], vSHW_Add[-12: ]))
     mEvaluations = np.zeros((len(mPredictions), 4))
     for i in range(len(mPredictions)):
