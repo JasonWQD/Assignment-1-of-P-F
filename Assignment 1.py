@@ -423,6 +423,16 @@ def fPlot13(dfGas2):
     vAR[:7] = vAR1[:7]
     vAR[7:] = vAR2[7:]
     
+    ## Estmate alpha for ES forcast
+    vMSE = np.zeros(100)
+    vAlpha = np.linspace(0, 1, 100)
+    for i in range(len(vAlpha)):
+        vES = fES(vYt, vAlpha[i])
+        dME, dMAE, dMAPE, dMSE = fEvaluation(vYt, vES)
+        vMSE[i] = dMSE
+    dAlpha_ES = vAlpha[np.argmin(vMSE)]
+    vES_est = fES(vYt, dAlpha = dAlpha_ES)
+        
     fig = plt.figure(dpi = 300)
     ax1 = fig.add_subplot(321)
     ax1.plot(np.array(range(1, len(vYt) + 1)), vYt, color = 'red', label = 'Gasoline Sales')
@@ -444,6 +454,10 @@ def fPlot13(dfGas2):
     ax5.plot(np.array(range(1, len(vYt) + 1)), vYt, color = 'red', label = 'Gasoline Sales')
     ax5.plot(np.array(range(2, len(vYt) + 1)), vES, color = 'blue', label = 'Exp Smo Forecast, alpha = 0.2')
     ax5.legend(prop={'size': 6})
+    ax6 = fig.add_subplot(326)
+    ax6.plot(np.array(range(1, len(vYt) + 1)), vYt, color = 'red', label = 'Gasoline Sales')
+    ax6.plot(np.array(range(2, len(vYt) + 1)), vES_est, color = 'blue', label = 'Exp Smo Forecast, alpha = 0.2')
+    ax6.legend(prop={'size': 6})
     plt.tight_layout(pad = 1.08)
     plt.show()
     
@@ -747,8 +761,22 @@ def fBicyclePredict(dfBike):
 ###########################################################
 ### For the umbrella
 
-
-### fPlot84 page 84 for the umbrella
+def fUmbrellaQa (dfUmbrella):
+    result = sm.tsa.ExponentialSmoothing(dfUmbrella["Umbrella Sales"].values, seasonal='add', seasonal_periods=4).fit()
+    dLt = result.level
+    dHt = result.season
+    dGt = dfUmbrella["Umbrella Sales"] - dLt - dHt
+    model = sm.tsa.ExponentialSmoothing(dfUmbrella["Umbrella Sales"], trend='add', seasonal='add', seasonal_periods=4, use_boxcox=False)
+    hw_model = model.fit(optimized=True, remove_bias=False)
+    forecast = hw_model.forecast(steps=8)
+    forecast_values = forecast
+    fPlot84(dfUmbrella)
+    fPlot85(dfUmbrella, dLt, dHt, dGt)
+    fPlot86(dfUmbrella, forecast_values)
+    return
+    
+###########################################################
+### fPlot84 
 
 from matplotlib.ticker import MultipleLocator
 def fPlot84(dfUmbrella):
@@ -772,6 +800,79 @@ def fPlot84(dfUmbrella):
     plt.show()
 
     return
+
+###########################################################
+### fPlot85
+import statsmodels.api as sm
+
+def fPlot85(dfUmbrella, dLt, dHt, dGt):
+    x_values = np.arange(1, 6, 0.25)
+
+    fig, axs = plt.subplots(3, 1, figsize=(8, 12), dpi=300)
+
+    # Plot 85_1
+    axs[0].plot(x_values, dfUmbrella["Umbrella Sales"], color='green', marker='o', linestyle='-')
+    axs[0].plot(x_values, dLt, color='red', linestyle='-', linewidth=2)
+    axs[0].minorticks_on()
+    axs[0].xaxis.set_major_locator(MultipleLocator(1))
+    axs[0].xaxis.set_minor_locator(MultipleLocator(0.25))
+    axs[0].set_yticks(np.arange(0, 181, 20))
+    axs[0].set_yticks(np.arange(0, 181, 5), labels=["" if i % 20 != 0 else str(i) for i in range(0, 181, 5)], minor=True)
+
+    # Plot 85_2
+    axs[1].plot(x_values, dHt, color='blue', linestyle='-', marker='o')
+    axs[1].axhline(y=0, color='black', linestyle='-', linewidth=1)
+    axs[1].minorticks_on()
+    axs[1].xaxis.set_major_locator(MultipleLocator(1))
+    axs[1].xaxis.set_minor_locator(MultipleLocator(0.25))
+    axs[1].set_yticks([-25, 0, 25])
+
+    # Plot 85_3
+    axs[2].plot(x_values, dGt, color='black', marker='o', linestyle='')
+    axs[2].axhline(y=0, color='black', linestyle='-', linewidth=1)
+    axs[2].vlines(x_values, ymin=0, ymax=dGt, color='black', linestyle='-', linewidth=1)
+    axs[2].minorticks_on()
+    axs[2].xaxis.set_major_locator(MultipleLocator(1))
+    axs[2].xaxis.set_minor_locator(MultipleLocator(0.25))
+    axs[2].set_yticks([-5, 0, 5])
+
+    plt.tight_layout()
+    plt.show()
+    
+    return
+
+###########################################################
+### fPlot86
+
+def fPlot86(dfUmbrella, forecast_values):
+    x_known = np.arange(1, 6, 0.25)
+    x_forecast = np.arange(6, 8, 0.25)
+
+    plt.figure(dpi=300)
+
+    plt.plot(x_known, dfUmbrella["Umbrella Sales"], color='green', marker='o', linestyle='-')
+
+    plt.plot(x_forecast, forecast_values, color='blue', marker='o', linestyle='-')
+
+   
+    plt.axvline(x=6, color='black', linestyle='--')
+
+    plt.minorticks_on()
+
+    major_locator = MultipleLocator(1)
+    minor_locator = MultipleLocator(0.25)
+
+    plt.gca().xaxis.set_major_locator(major_locator)
+    plt.gca().xaxis.set_minor_locator(minor_locator)
+
+    
+    plt.yticks(np.arange(0, 181, 20))
+    
+    plt.yticks(np.arange(0, 181, 5), labels=["" if i % 20 != 0 else str(i) for i in range(0, 181, 5)], minor=True)
+
+    plt.show()
+
+    return 
 
 ###########################################################
 ### def fUmbrellaPredict
@@ -818,6 +919,139 @@ def fPredict(vYt, bTune = 1, dAlpha_ES = 0, dAlpha_HW = 0, dBeta_HW = 0):
     for i in range(len(mPredictions)):
         mEvaluations[i] = fEvaluation(vYt[-11: ], mPredictions[i])
     dfEvaluation = pd.DataFrame(mEvaluations, columns = ['ME', 'MAE', 'MAPE', 'MSE'], index = ['RW', 'RA', 'RT', 'RW_Drift', 'ES', 'HW'])
+    
+    ### For plotting
+    vRA = np.insert(vRA, 0, [None])  # Fix the length
+    vRT = np.insert(vRT, 0, [None, None])  # Fix the length
+    mBeta = np.insert(mBeta, 0, np.zeros((2, 2)), axis=0)
+
+    ### Plot Run Average vs Run Trend
+    fig = plt.figure(dpi = 300)
+    ax1 = fig.add_subplot(311)
+    ax1.plot(np.array(range(1, len(vYt) + 1)), vYt, color='red')  # Adjust x-axis values
+    ax1.plot(np.array(range(1, len(vYt) + 1)), vRA, color='blue')  # Adjust x-axis values
+    ax1.legend(labels=["Observations", "Running Average Forecast"], fontsize="7")
+
+    ax2 = fig.add_subplot(312)
+    ax2.plot(np.array(range(1, len(vYt) + 1)), vYt, color='red')  # Adjust x-axis values
+    ax2.plot(np.array(range(1, len(vYt) + 1)), vRT, color='blue')  # Adjust x-axis values
+    ax2.legend(labels=["Observations", "Running Trend Forecast"],fontsize="7")
+    
+    ax3 = fig.add_subplot(313)
+    n = len(vYt)
+    r = np.arange(n)+1 
+    a = mBeta[:,0]
+    b = mBeta[:,1]  
+    width = 0.3
+    ax3.bar(r, a, color = 'g', 
+        width = width,
+        label= r"$a_{t-1}$") 
+    ax3.bar(r + width, b, color = 'b', 
+        width = width, 
+        label= r"$b_{t-1}$") 
+    ax3.legend(fontsize="7") 
+
+    plt.tight_layout(pad = 1.08)
+    plt.show()
+    
+    fig = plt.figure(dpi = 300)
+    ax1 = fig.add_subplot(211)
+    ax1.plot(vYt, color = 'red')
+    ax1.plot(np.array(range(len(vYt) )), vRA, color = 'blue')
+    ax1.legend(labels=["Observations", "Running Average Forecast"], fontsize="7")
+    
+    ax2 = fig.add_subplot(212)
+    ax2.vlines(np.array(range( len(vYt) )), 0, vYt - vRA)
+    ax2.axhline(0)
+    ax2.scatter(np.array(range( len(vYt))), vYt - vRA)
+    plt.tight_layout(pad = 1.08)
+    plt.show()
+    
+    fig = plt.figure(dpi = 300)
+    ax1 = fig.add_subplot(211)
+    ax1.plot(vYt, color = 'red')
+    ax1.plot(np.array(range(0, len(vYt))), vRT, color = 'blue')
+    ax1.legend(labels=["Observations", "Running Trend Forecast"], fontsize="7")
+    
+    ax2 = fig.add_subplot(212)
+    ax2.vlines(np.array(range(0, len(vYt))), 0, vYt - vRT)
+    ax2.axhline(0)
+    ax2.scatter(np.array(range(0, len(vYt))), vYt - vRT)
+    plt.tight_layout(pad = 1.08)
+    plt.show()
+    
+    ### Plot Ran Walk vs RW with Drift
+    vRW = np.insert(vRW, 0, [None])  # Fix the length
+    vRW_Drift = np.insert(vRW_Drift, 0, [None, None])  # Fix the length
+    vCt = np.insert(vCt, 0, [0, 0])  # Fix the length
+    
+    fig = plt.figure(dpi = 300)
+    ax1 = fig.add_subplot(311)
+    ax1.plot(np.array(range(1, len(vYt) + 1)), vYt, color='red')  # Adjust x-axis values
+    ax1.plot(np.array(range(1, len(vYt) + 1)), vRW, color='blue')  # Adjust x-axis values
+    ax1.legend(labels=["Observations", "Random Walk Forecast"], fontsize="7")
+    
+    ax2 = fig.add_subplot(312)
+    ax2.plot(np.array(range(1, len(vYt) + 1)), vYt, color='red')  # Adjust x-axis values
+    ax2.plot(np.array(range(1, len(vYt) + 1)), vRW_Drift, color='blue')  # Adjust x-axis values
+    ax2.legend(labels=["Observations", "Random Walk Plus Drift Forecast"], fontsize="7")
+
+    ax3 = fig.add_subplot(313)
+    n = len(vYt)
+    r = np.arange(n)+1 
+    width = 0.5
+    ax3.bar(r, vCt, color = 'g', 
+        width = width,
+        label= r"$c_{t-1}$") 
+    ax3.legend(fontsize="7") 
+
+    plt.tight_layout(pad = 1.08)
+    plt.show()
+    
+    ### Plot ES and Holt Winters
+    vES = np.insert(vES, 0, [None])  # Fix the length
+    vHW = np.insert(vHW, 0, [None, None])  # Fix the length
+    fig = plt.figure(dpi = 300)
+    ax1 = fig.add_subplot(211)
+    ax1.plot(vYt, color = 'red')
+    ax1.plot(np.array(range(len(vYt) )), vES, color = 'blue')
+    ax1.legend(labels=["Observations", "Exp Smo forecast, alpha = est"], fontsize="7")
+    
+    ax2 = fig.add_subplot(212)
+    ax2.plot(vYt, color = 'red')
+    ax2.plot(np.array(range(len(vYt) )), vHW, color = 'blue')
+    ax2.legend(labels=["Observations", "HW forecast, alpha beta = est"], fontsize="7")
+    plt.tight_layout(pad = 1.08)
+    plt.show()
+    
+    ### wrap up plot
+    fig = plt.figure(dpi = 300)
+    ax1 = fig.add_subplot(321)
+    ax1.plot(np.array(range( len(vYt) )), vYt, color = 'red', label = 'Observations')
+    ax1.plot(np.array(range(len(vYt))), vRA, color = 'blue', label = 'Running Avg Forecast')
+    ax1.legend(prop={'size': 6})
+    ax2 = fig.add_subplot(322)
+    ax2.plot(np.array(range( len(vYt) )), vYt, color = 'red', label = 'Observations')
+    ax2.plot(np.array(range(len(vYt) )), vRT, color = 'blue', label = 'Running Trend Forecast')
+    ax2.legend(prop={'size': 6})
+    ax3 = fig.add_subplot(323)
+    ax3.plot(np.array(range(1, len(vYt) + 1)), vYt, color = 'red', label = 'Observations')
+    ax3.plot(np.array(range(1, len(vYt) + 1)), vRW, color = 'blue', label = 'Random Walk Forecast')
+    ax3.legend(prop={'size': 6})
+    ax4 = fig.add_subplot(324)
+    ax4.plot(np.array(range(1, len(vYt) + 1)), vYt, color = 'red', label = 'Observations')
+    ax4.plot(np.array(range(1, len(vYt) + 1)), vRW_Drift, color = 'blue', label = 'Random Walk w Drift Forecast')
+    ax4.legend(prop={'size': 6})
+    ax5 = fig.add_subplot(325)
+    ax5.plot(np.array(range(1, len(vYt) + 1)), vYt, color = 'red', label = 'Observations')
+    ax5.plot(np.array(range(1, len(vYt) + 1)), vES, color = 'blue', label = 'Exp Smo Forecast, alpha = est')
+    ax5.legend(prop={'size': 6})
+    ax6 = fig.add_subplot(326)
+    ax6.plot(np.array(range(1, len(vYt) + 1)), vYt, color = 'red', label = 'Observations')
+    ax6.plot(np.array(range(1, len(vYt) + 1)), vHW, color = 'blue', label = 'Double Exp Smo Forecast, alpha beta = est')
+    ax6.legend(prop={'size': 6})
+    plt.tight_layout(pad = 1.08)
+    plt.show()
     
     if bTune == 1:
         return dfEvaluation, dAlpha_ES, dAlpha_HW, dBeta_HW
@@ -913,14 +1147,14 @@ def main():
     # Question (a)
     dfTable1, dfTable2, dfTable3, dfTable4, dfTable5, dfTable7 = fGasPredict(dfGas1, dfGas2)
     dfTable8, dfTable9 = fBicyclePredict(dfBike)
-    fUmbrellaPredict(dfUmbrella)
+    fUmbrellaQa (dfUmbrella)
     
     # Question (b)
     vYt = dfData['Var3'].values[: 40]
-    dfEvaluation, dAlpha_ES, dAlpha_HW, dBeta_HW = fPredict(vYt)
+    dfEvaluation1, dAlpha_ES, dAlpha_HW, dBeta_HW = fPredict(vYt)
     
     vYt = dfData['Var3'].values
-    dfEvaluation = fPredict(vYt, bTune = 0, dAlpha_ES = dAlpha_ES, dAlpha_HW = dAlpha_HW, dBeta_HW = dBeta_HW)
+    dfEvaluation2 = fPredict(vYt, bTune = 0, dAlpha_ES = dAlpha_ES, dAlpha_HW = dAlpha_HW, dBeta_HW = dBeta_HW)
     
     # Question (c)
     vYt = dfUmbrella['Umbrella Sales'].values
